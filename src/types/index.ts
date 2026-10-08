@@ -2,6 +2,8 @@
  * Shewa Fashion - Shared Types
  */
 
+export * from "./product";
+
 export interface NavItem {
   label: string;
   href: string;

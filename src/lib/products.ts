@@ -57,6 +57,43 @@ export interface CatalogResult {
   pageSize: number;
 }
 
+export interface ProductDetailImage {
+  id: string;
+  url: string;
+  alt: string;
+  sortOrder: number;
+}
+
+export interface ProductDetailOption {
+  id: string;
+  type: "SIZE" | "SHOE_SIZE" | "COLOR" | "ONE_SIZE";
+  value: string;
+}
+
+export interface ProductDetail {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  available: boolean;
+  featured: boolean;
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+  collection: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+  images: ProductDetailImage[];
+  options: ProductDetailOption[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface FilterOption {
   label: string;
   slug: string;
@@ -271,5 +308,204 @@ export async function getCatalogCollections(): Promise<FilterOption[]> {
   } catch (error) {
     console.error("Error querying catalog collections:", error);
     return [];
+  }
+}
+
+/**
+ * Fetches a single product by its unique slug with its category, collection,
+ * sorted images, and options.
+ */
+export async function getProductBySlug(
+  slug: string
+): Promise<ProductDetail | null> {
+  if (!slug || typeof slug !== "string") return null;
+
+  try {
+    const product = await prisma.product.findUnique({
+      where: { slug: slug.trim() },
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        collection: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        images: {
+          orderBy: {
+            sortOrder: "asc",
+          },
+          select: {
+            id: true,
+            url: true,
+            alt: true,
+            sortOrder: true,
+          },
+        },
+        options: {
+          select: {
+            id: true,
+            type: true,
+            value: true,
+          },
+        },
+      },
+    });
+
+    if (!product) return null;
+
+    return {
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      description: product.description,
+      price: product.price,
+      available: product.available,
+      featured: product.featured,
+      category: product.category,
+      collection: product.collection,
+      images: product.images,
+      options: product.options as ProductDetailOption[],
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+    };
+  } catch (error) {
+    console.error("Error retrieving product by slug from database:", error);
+    return null;
+  }
+}
+
+/**
+ * Fetches related products in the same category or collection, excluding the current product.
+ */
+export async function getRelatedProducts(
+  currentProductId: string,
+  categoryId?: string | null,
+  limit = 4
+): Promise<CatalogProduct[]> {
+  try {
+    const where: Prisma.ProductWhereInput = {
+      id: { not: currentProductId },
+      available: true,
+    };
+
+    if (categoryId) {
+      where.categoryId = categoryId;
+    }
+
+    const rawProducts = await prisma.product.findMany({
+      where,
+      orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+      take: limit,
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        collection: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        images: {
+          orderBy: {
+            sortOrder: "asc",
+          },
+          take: 1,
+          select: {
+            url: true,
+            alt: true,
+          },
+        },
+      },
+    });
+
+    // If fewer than limit products were found in the same category, fill with other available products
+    if (rawProducts.length < limit) {
+      const existingIds = [currentProductId, ...rawProducts.map((p) => p.id)];
+      const fallbackProducts = await prisma.product.findMany({
+        where: {
+          id: { notIn: existingIds },
+          available: true,
+        },
+        orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+        take: limit - rawProducts.length,
+        include: {
+          category: {
+            select: { id: true, name: true, slug: true },
+          },
+          collection: {
+            select: { id: true, name: true, slug: true },
+          },
+          images: {
+            orderBy: { sortOrder: "asc" },
+            take: 1,
+            select: { url: true, alt: true },
+          },
+        },
+      });
+      rawProducts.push(...fallbackProducts);
+    }
+
+    return rawProducts.map((p) => {
+      const primaryImage = p.images[0];
+      return {
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        description: p.description,
+        price: p.price,
+        available: p.available,
+        featured: p.featured,
+        category: p.category,
+        collection: p.collection,
+        image: primaryImage?.url || "",
+        imageAlt: primaryImage?.alt || p.name,
+        createdAt: p.createdAt,
+      };
+    });
+  } catch (error) {
+    console.error("Error retrieving related products:", error);
+    return [];
+  }
+}
+
+/**
+ * Retrieves the store settings singleton record.
+ */
+export async function getStoreSettings(): Promise<{
+  storeName: string;
+  phone?: string | null;
+  email?: string | null;
+  whatsapp?: string | null;
+  telegram?: string | null;
+} | null> {
+  try {
+    const settings = await prisma.storeSettings.findUnique({
+      where: { id: "singleton" },
+      select: {
+        storeName: true,
+        phone: true,
+        email: true,
+        whatsapp: true,
+        telegram: true,
+      },
+    });
+    return settings;
+  } catch (error) {
+    console.error("Error retrieving store settings:", error);
+    return null;
   }
 }

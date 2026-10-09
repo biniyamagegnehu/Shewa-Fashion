@@ -648,25 +648,76 @@ export async function getRelatedProducts(
   }
 }
 
-/**
- * Retrieves the store settings singleton record.
- */
-export async function getStoreSettings(): Promise<{
+export interface GalleryItemRecord {
+  id: string;
+  title: string;
+  imageUrl: string;
+  alt: string;
+  description: string | null;
+  sortOrder: number;
+}
+
+export interface StoreSettingsRecord {
   storeName: string;
+  description?: string | null;
+  logoUrl?: string | null;
   phone?: string | null;
   email?: string | null;
   whatsapp?: string | null;
+  address?: string | null;
+  openingHours?: string | null;
+  instagram?: string | null;
+  facebook?: string | null;
+  tiktok?: string | null;
   telegram?: string | null;
-} | null> {
+  googleMapsUrl?: string | null;
+}
+
+/**
+ * Fetches all published gallery lookbook items ordered by sortOrder.
+ */
+export async function getGalleryItems(): Promise<GalleryItemRecord[]> {
+  try {
+    const items = await prisma.galleryItem.findMany({
+      where: { isPublished: true },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      select: {
+        id: true,
+        title: true,
+        imageUrl: true,
+        alt: true,
+        description: true,
+        sortOrder: true,
+      },
+    });
+    return items;
+  } catch (error) {
+    console.error("Error retrieving gallery items from database:", error);
+    return [];
+  }
+}
+
+/**
+ * Retrieves the store settings singleton record with all public details.
+ */
+export async function getStoreSettings(): Promise<StoreSettingsRecord | null> {
   try {
     const settings = await prisma.storeSettings.findUnique({
       where: { id: "singleton" },
       select: {
         storeName: true,
+        description: true,
+        logoUrl: true,
         phone: true,
         email: true,
         whatsapp: true,
+        address: true,
+        openingHours: true,
+        instagram: true,
+        facebook: true,
+        tiktok: true,
         telegram: true,
+        googleMapsUrl: true,
       },
     });
     return settings;

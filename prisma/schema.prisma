@@ -1,0 +1,238 @@
+// ============================================================
+// Shewa Fashion — Prisma Schema
+// Prisma version: 6.19.3
+// Database: PostgreSQL 18
+// Currency convention: All prices are stored in Ethiopian Birr
+// (ETB) as integer values representing full Birr amounts.
+// Example: 3450 = 3,450 ETB
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// Enums
+// ============================================================
+
+enum UserRole {
+  ADMIN
+  EDITOR
+}
+
+enum OptionType {
+  SIZE
+  SHOE_SIZE
+  COLOR
+  ONE_SIZE
+}
+
+enum MessageStatus {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+// ============================================================
+// User
+// Stores future administrator accounts.
+// Passwords must never be stored as plaintext — only hashed.
+// Authentication is NOT implemented in Phase 4.
+// ============================================================
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  role          UserRole  @default(ADMIN)
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+// ============================================================
+// Category
+// Top-level catalogue grouping: Women, Men, Kids, Shoes,
+// Bags, Accessories.
+// ============================================================
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products    Product[]
+
+  @@map("categories")
+}
+
+// ============================================================
+// Collection
+// Curated groupings: New Arrivals, Best Sellers, etc.
+// Each product can belong to one optional primary collection.
+// ============================================================
+model Collection {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products    Product[]
+
+  @@map("collections")
+}
+
+// ============================================================
+// Product
+// Core catalogue item.
+// price: integer, Ethiopian Birr (ETB) — no floating-point.
+// Deleting a category or collection sets FK to null on products
+// to prevent accidental product loss.
+// ============================================================
+model Product {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  description  String
+  /// Price in Ethiopian Birr (ETB), stored as integer full-Birr value.
+  price        Int
+  available    Boolean  @default(true)
+  featured     Boolean  @default(false)
+  categoryId   String?
+  collectionId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  category   Category?   @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  collection Collection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+  images     ProductImage[]
+  options    ProductOption[]
+
+  @@index([categoryId])
+  @@index([collectionId])
+  @@index([available])
+  @@index([featured])
+  @@index([createdAt])
+  @@map("products")
+}
+
+// ============================================================
+// ProductImage
+// One product can have multiple ordered images.
+// Stores URLs only — binary files are NOT stored in the DB.
+// ============================================================
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  url       String
+  alt       String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, sortOrder])
+  @@map("product_images")
+}
+
+// ============================================================
+// ProductOption
+// Flexible size, colour, or variant options per product.
+// Duplicate type+value combinations are prevented per product.
+// ============================================================
+model ProductOption {
+  id        String     @id @default(cuid())
+  productId String
+  type      OptionType
+  value     String
+
+  product   Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, type, value])
+  @@index([productId])
+  @@map("product_options")
+}
+
+// ============================================================
+// GalleryItem
+// Curated lookbook / editorial gallery.
+// Unpublished items are hidden from the public site.
+// Stores image URLs only.
+// ============================================================
+model GalleryItem {
+  id          String   @id @default(cuid())
+  title       String
+  imageUrl    String
+  alt         String
+  description String?
+  sortOrder   Int      @default(0)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished, sortOrder])
+  @@map("gallery_items")
+}
+
+// ============================================================
+// ContactMessage
+// Messages submitted through the contact form.
+// Contact form submission is NOT implemented in Phase 4.
+// ============================================================
+model ContactMessage {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  status    MessageStatus @default(UNREAD)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("contact_messages")
+}
+
+// ============================================================
+// StoreSettings
+// Single-row store configuration.
+// The application should always upsert using id = "singleton".
+// All contact/social fields are optional and nullable.
+// Do NOT store invented contact details or real credentials.
+// ============================================================
+model StoreSettings {
+  id            String   @id @default("singleton")
+  storeName     String   @default("Shewa Fashion")
+  logoUrl       String?
+  description   String?
+  phone         String?
+  email         String?
+  whatsapp      String?
+  address       String?
+  openingHours  String?
+  instagram     String?
+  facebook      String?
+  tiktok        String?
+  telegram      String?
+  googleMapsUrl String?
+  updatedAt     DateTime @updatedAt
+
+  @@map("store_settings")
+}

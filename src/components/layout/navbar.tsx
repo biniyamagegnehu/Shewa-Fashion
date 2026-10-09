@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { NavLinks } from "@/components/layout/nav-links";
 import { NavItem, SocialLink } from "@/types";
-import { cn } from "@/lib/utils";
 
 // Global navigation destinations
 const navItems: NavItem[] = [
@@ -25,9 +24,25 @@ const socialLinks: SocialLink[] = [
   { name: "WhatsApp", href: "#", ariaLabel: "Chat with Shewa Fashion on WhatsApp" },
 ];
 
+/** Fallback nav links rendered during Suspense (no active state). */
+function NavLinksFallback() {
+  return (
+    <>
+      {navItems.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          className="text-sm font-medium tracking-wide transition-colors py-2 relative text-secondary hover:text-main"
+        >
+          {item.label}
+        </Link>
+      ))}
+    </>
+  );
+}
+
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const pathname = usePathname();
 
   return (
     <>
@@ -50,27 +65,10 @@ export function Navbar() {
               aria-label="Main Navigation"
               className="hidden lg:flex items-center gap-8"
             >
-              {navItems.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "text-sm font-medium tracking-wide transition-colors py-2 relative",
-                      isActive
-                        ? "text-primary font-semibold"
-                        : "text-secondary hover:text-main"
-                    )}
-                    aria-current={isActive ? "page" : undefined}
-                  >
-                    {item.label}
-                    {isActive && (
-                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
-                    )}
-                  </Link>
-                );
-              })}
+              {/* NavLinks uses usePathname — wrap in Suspense to satisfy Next.js prerender */}
+              <Suspense fallback={<NavLinksFallback />}>
+                <NavLinks items={navItems} />
+              </Suspense>
             </nav>
 
             {/* Right Action Icons & CTA */}
@@ -159,12 +157,14 @@ export function Navbar() {
       </header>
 
       {/* Mobile Drawer */}
-      <MobileNav
-        isOpen={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
-        items={navItems}
-        socialLinks={socialLinks}
-      />
+      <Suspense fallback={null}>
+        <MobileNav
+          isOpen={mobileMenuOpen}
+          onClose={() => setMobileMenuOpen(false)}
+          items={navItems}
+          socialLinks={socialLinks}
+        />
+      </Suspense>
     </>
   );
 }

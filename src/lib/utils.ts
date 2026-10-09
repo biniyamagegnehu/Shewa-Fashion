@@ -11,3 +11,11 @@ export function cn(
 ): string {
   return inputs.filter(Boolean).join(" ");
 }
+
+/**
+ * Formats a numeric price into Ethiopian Birr (ETB) format.
+ * Example: 2450 -> "2,450 ETB"
+ */
+export function formatPrice(price: number): string {
+  return `${price.toLocaleString()} ETB`;
+}

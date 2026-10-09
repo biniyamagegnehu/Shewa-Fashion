@@ -12,6 +12,7 @@
     "db:migrate": "npm run prisma -- migrate dev",
     "db:seed": "npm run prisma -- db seed",
     "db:verify": "tsx prisma/verify-db.ts",
+    "test:catalog": "tsx scripts/test-catalog.ts",
     "db:studio": "npm run prisma -- studio"
   },
   "prisma": {

@@ -22,6 +22,9 @@ export const metadata: Metadata = {
     "Explore contemporary Ethiopian fashion, artisan leather shoes, handcrafted bags, and heritage accessories.",
 };
 
+// Allow blocking route for uncached database access with Next.js 16 Cache Components
+export const instant = false;
+
 interface ShopPageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }

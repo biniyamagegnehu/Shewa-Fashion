@@ -66,7 +66,7 @@ export function FeaturedCollection() {
             {/* CTA */}
             <div className="pt-6 sm:pt-8">
               <Button
-                href={featuredCollection.href}
+                href="/collections"
                 size="lg"
                 variant="primary"
                 fullWidth

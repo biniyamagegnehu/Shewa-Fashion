@@ -21,9 +21,9 @@ export function CategoryGrid() {
           {categories.map((category) => (
             <Link
               key={category.id}
-              href={category.href}
+              href={`/categories/${category.slug}`}
               className="group relative flex flex-col justify-end overflow-hidden rounded-xl bg-surface border border-border/80 aspect-[4/5] p-3.5 sm:p-4 text-white shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              aria-label={`Shop ${category.name} collection, ${category.itemCount} items`}
+              aria-label={`Browse ${category.name} — ${category.itemCount} items`}
             >
               {/* Category Background Image */}
               <Image

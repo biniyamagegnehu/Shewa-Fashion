@@ -14,6 +14,9 @@ import { ProductOptions } from "@/components/product/product-options";
 import { ContactCta } from "@/components/product/contact-cta";
 import { RelatedProducts } from "@/components/product/related-products";
 
+// Allow blocking route for uncached database access with Next.js 16 Cache Components
+export const instant = false;
+
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -93,7 +96,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 </li>
                 <li>
                   <Link
-                    href={`/shop?category=${product.category.slug}`}
+                    href={`/categories/${product.category.slug}`}
                     className="hover:text-main transition-colors"
                   >
                     {product.category.name}
@@ -129,7 +132,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <div className="flex items-center flex-wrap gap-2 text-xs tracking-wider uppercase font-semibold">
               {product.category && (
                 <Link
-                  href={`/shop?category=${product.category.slug}`}
+                  href={`/categories/${product.category.slug}`}
                   className="px-2.5 py-1 rounded-full bg-primary-light text-primary hover:bg-primary/20 transition-colors"
                 >
                   {product.category.name}
@@ -138,7 +141,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
               {product.collection && (
                 <Link
-                  href={`/shop?collection=${product.collection.slug}`}
+                  href={`/collections/${product.collection.slug}`}
                   className="px-2.5 py-1 rounded-full bg-accent-gold-light text-accent-gold hover:opacity-80 transition-opacity"
                 >
                   {product.collection.name}

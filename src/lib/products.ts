@@ -100,6 +100,24 @@ export interface FilterOption {
   count?: number;
 }
 
+export interface CategoryDetail {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  image: string | null;
+  productCount: number;
+}
+
+export interface CollectionDetail {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  image: string | null;
+  productCount: number;
+}
+
 const VALID_SORT_OPTIONS: Record<string, ProductSortOption> = {
   featured: "featured",
   newest: "newest",
@@ -308,6 +326,154 @@ export async function getCatalogCollections(): Promise<FilterOption[]> {
   } catch (error) {
     console.error("Error querying catalog collections:", error);
     return [];
+  }
+}
+
+/**
+ * Fetches all active categories with full detail (image, description, product count).
+ */
+export async function getCategories(): Promise<CategoryDetail[]> {
+  try {
+    const categories = await prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        image: true,
+        _count: {
+          select: { products: true },
+        },
+      },
+    });
+
+    return categories.map((c) => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      description: c.description,
+      image: c.image,
+      productCount: c._count.products,
+    }));
+  } catch (error) {
+    console.error("Error querying categories:", error);
+    return [];
+  }
+}
+
+/**
+ * Fetches a single active category by slug.
+ * Returns null if not found or inactive.
+ */
+export async function getCategoryBySlug(
+  slug: string
+): Promise<CategoryDetail | null> {
+  if (!slug || typeof slug !== "string") return null;
+
+  try {
+    const category = await prisma.category.findFirst({
+      where: { slug: slug.trim(), isActive: true },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        image: true,
+        _count: {
+          select: { products: true },
+        },
+      },
+    });
+
+    if (!category) return null;
+
+    return {
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      description: category.description,
+      image: category.image,
+      productCount: category._count.products,
+    };
+  } catch (error) {
+    console.error("Error querying category by slug:", error);
+    return null;
+  }
+}
+
+/**
+ * Fetches all active collections with full detail (image, description, product count).
+ */
+export async function getCollections(): Promise<CollectionDetail[]> {
+  try {
+    const collections = await prisma.collection.findMany({
+      where: { isActive: true },
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        image: true,
+        _count: {
+          select: { products: true },
+        },
+      },
+    });
+
+    return collections.map((c) => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      description: c.description,
+      image: c.image,
+      productCount: c._count.products,
+    }));
+  } catch (error) {
+    console.error("Error querying collections:", error);
+    return [];
+  }
+}
+
+/**
+ * Fetches a single active collection by slug.
+ * Returns null if not found or inactive.
+ */
+export async function getCollectionBySlug(
+  slug: string
+): Promise<CollectionDetail | null> {
+  if (!slug || typeof slug !== "string") return null;
+
+  try {
+    const collection = await prisma.collection.findFirst({
+      where: { slug: slug.trim(), isActive: true },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        image: true,
+        _count: {
+          select: { products: true },
+        },
+      },
+    });
+
+    if (!collection) return null;
+
+    return {
+      id: collection.id,
+      name: collection.name,
+      slug: collection.slug,
+      description: collection.description,
+      image: collection.image,
+      productCount: collection._count.products,
+    };
+  } catch (error) {
+    console.error("Error querying collection by slug:", error);
+    return null;
   }
 }
 

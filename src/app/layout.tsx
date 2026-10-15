@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
-import { Navbar } from "@/components/layout/navbar";
-import { Footer } from "@/components/layout/footer";
+import { AppHeader, AppFooter } from "@/components/layout/app-chrome";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -63,9 +62,9 @@ export default function RootLayout({
       className={`${playfair.variable} ${plusJakarta.variable}`}
     >
       <body className="min-h-screen flex flex-col bg-background text-main antialiased selection:bg-primary-light selection:text-main">
-        <Navbar />
+        <AppHeader />
         <main className="flex-1 w-full">{children}</main>
-        <Footer />
+        <AppFooter />
       </body>
     </html>
   );

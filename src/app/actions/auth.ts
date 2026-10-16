@@ -7,6 +7,7 @@ import { createAdminSession, deleteAdminSession } from '@/lib/session'
 import {
   checkLoginRateLimit,
   getClientIp,
+  getSafeRedirectUrl,
   recordFailedLoginAttempt,
   resetLoginRateLimit,
 } from '@/lib/auth'
@@ -16,7 +17,7 @@ export interface LoginActionState {
   success?: boolean
 }
 
-// Pre-computed dummy hash to prevent timing attacks when an email does not exist
+// Pre-computed dummy hash to mitigate timing attacks when an email does not exist
 const DUMMY_HASH = '$2b$12$uB3ZerMaqZl54TYu/0g53etB0MzreHYs7t/WLiDCWIP74IKBYhpQS'
 
 /**
@@ -28,6 +29,7 @@ export async function loginAction(
 ): Promise<LoginActionState> {
   const emailRaw = formData.get('email')
   const passwordRaw = formData.get('password')
+  const redirectToRaw = formData.get('redirectTo')
 
   // Basic format and presence validation
   if (
@@ -42,13 +44,13 @@ export async function loginAction(
   const email = emailRaw.trim().toLowerCase()
   const password = passwordRaw
 
-  // Simple email format check
+  // Email format check
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(email) || email.length > 255) {
     return { error: 'Invalid email or password.' }
   }
 
-  // Rate limiting check
+  // Rate limiting check per client IP
   const clientIp = await getClientIp()
   const rateLimit = checkLoginRateLimit(clientIp)
   if (!rateLimit.allowed) {
@@ -57,12 +59,14 @@ export async function loginAction(
     }
   }
 
+  let destination = '/admin'
+
   try {
     const user = await prisma.user.findUnique({
       where: { email },
     })
 
-    // Compare against real hash or dummy hash to mitigate user enumeration through timing attacks
+    // Compare against real hash or dummy hash to mitigate user enumeration timing
     const hashToCompare = user?.passwordHash || DUMMY_HASH
     const isPasswordValid = await bcrypt.compare(password, hashToCompare)
 
@@ -72,16 +76,21 @@ export async function loginAction(
       return { error: 'Invalid email or password.' }
     }
 
-    // Authentication succeeded: reset rate limit and issue session
+    // Authentication succeeded: reset rate limit and create opaque session
     resetLoginRateLimit(clientIp)
-    await createAdminSession(user.id, user.role)
+    await createAdminSession(user.id)
+
+    // Determine safe destination
+    if (typeof redirectToRaw === 'string') {
+      destination = getSafeRedirectUrl(redirectToRaw, '/admin')
+    }
   } catch (error) {
     console.error('Login action error:', error)
     return { error: 'An unexpected error occurred. Please try again.' }
   }
 
-  // Redirect to admin dashboard
-  redirect('/admin')
+  // Redirect to verified safe admin destination
+  redirect(destination)
 }
 
 /**

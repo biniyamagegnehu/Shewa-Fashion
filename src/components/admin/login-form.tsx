@@ -4,7 +4,11 @@ import React, { useActionState, useState } from 'react'
 import { loginAction, LoginActionState } from '@/app/actions/auth'
 import { Button } from '@/components/ui/button'
 
-export function LoginForm() {
+interface LoginFormProps {
+  redirectTo?: string
+}
+
+export function LoginForm({ redirectTo }: LoginFormProps) {
   const [state, formAction, isPending] = useActionState<LoginActionState | undefined, FormData>(
     loginAction,
     undefined
@@ -54,6 +58,10 @@ export function LoginForm() {
 
         {/* Login Form */}
         <form action={formAction} noValidate className="space-y-5">
+          {redirectTo && (
+            <input type="hidden" name="redirectTo" value={redirectTo} />
+          )}
+
           {/* Email Field */}
           <div>
             <label

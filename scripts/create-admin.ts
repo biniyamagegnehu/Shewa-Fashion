@@ -14,7 +14,7 @@
  *   - Passwords are encrypted with bcrypt (12 rounds) before storage.
  *   - Plaintext passwords and hashes are never printed or logged.
  *   - Idempotent: Exits safely without overwriting if an administrator already exists with the given email.
- *   - Enforces minimum 12-character password length.
+ *   - Enforces minimum 8-character password length.
  */
 
 import readline from 'readline'
@@ -62,7 +62,7 @@ async function main() {
     }
 
     if (!password) {
-      password = await askQuestion('Admin Password (min 12 characters): ')
+      password = await askQuestion('Admin Password (min 8 characters): ')
     }
   }
 
@@ -77,8 +77,8 @@ async function main() {
   }
 
   // 2. Validate Password Length
-  if (!password || password.length < 12) {
-    console.error('❌ Error: Password must be at least 12 characters long.')
+  if (!password || password.length < 8) {
+    console.error('❌ Error: Password must be at least 8 characters long.')
     process.exit(1)
   }
 

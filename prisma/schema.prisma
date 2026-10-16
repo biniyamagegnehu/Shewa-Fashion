@@ -54,7 +54,32 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  sessions      Session[]
+
   @@map("users")
+}
+
+// ============================================================
+// Session
+// Stores opaque server-side sessions for authenticated users.
+// Only a cryptographic hash (SHA-256) of the token is stored.
+// Idle timeout: 30 minutes; Absolute lifetime: 7 days.
+// ============================================================
+model Session {
+  id           String    @id @default(cuid())
+  tokenHash    String    @unique
+  userId       String
+  lastActiveAt DateTime  @default(now())
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("sessions")
 }
 
 // ============================================================

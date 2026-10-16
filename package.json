@@ -16,6 +16,7 @@
     "test:catalog": "tsx scripts/test-catalog.ts",
     "test:auth": "tsx -r ./scripts/stub-server-only.cjs scripts/test-auth.ts",
     "test:dashboard": "tsx -r ./scripts/stub-server-only.cjs scripts/test-dashboard.ts",
+    "test:products": "tsx -r ./scripts/stub-server-only.cjs scripts/test-products.ts",
     "create-admin": "tsx scripts/create-admin.ts",
     "db:studio": "npm run prisma -- studio"
   },

@@ -125,7 +125,7 @@ async function runDashboardTests() {
   assert(Boolean(overviewItem && overviewItem.isAvailable && overviewItem.href === '/admin'), 'Overview navigation item is active and links to /admin')
 
   const productsItem = navItems.find((item) => item.name === 'Products')
-  assert(Boolean(productsItem && !productsItem.isAvailable && productsItem.phaseBadge === 'Phase 12'), 'Products navigation is disabled and tagged with Phase 12')
+  assert(Boolean(productsItem && productsItem.isAvailable && productsItem.href === '/admin/products'), 'Products navigation is active and links to /admin/products')
 
   const categoriesItem = navItems.find((item) => item.name === 'Categories & Collections')
   assert(Boolean(categoriesItem && !categoriesItem.isAvailable && categoriesItem.phaseBadge === 'Phase 13'), 'Categories navigation is disabled and tagged with Phase 13')

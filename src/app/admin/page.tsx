@@ -1,101 +1,197 @@
 import type { Metadata } from 'next'
+import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/auth'
-import { logoutAction } from '@/app/actions/auth'
-import { Button } from '@/components/ui/button'
+import { AdminShell } from '@/components/admin/admin-shell'
+import { StatsCards, DashboardStats } from '@/components/admin/stats-card'
+import { RecentProductsTable, RecentProductItem } from '@/components/admin/recent-products-table'
+import { StoreOverview } from '@/components/admin/store-overview'
+import type { StoreSettings } from '@prisma/client'
 
 export const instant = false
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard | Shewa Fashion',
-  description: 'Shewa Fashion administration dashboard.',
+  description: 'Management portal and catalogue overview for Shewa Fashion.',
+  robots: {
+    index: false,
+    follow: false,
+  },
 }
 
 export default async function AdminDashboardPage() {
-  const admin = await requireAdminSession()
+  // 1. Strict server-side authentication & role authorization
+  const admin = await requireAdminSession('/admin')
+
+  let stats: DashboardStats = {
+    totalProducts: 0,
+    availableProducts: 0,
+    featuredProducts: 0,
+    totalCategories: 0,
+    totalCollections: 0,
+    totalGalleryItems: 0,
+  }
+
+  let recentProducts: RecentProductItem[] = []
+  let storeSettings: StoreSettings | null = null
+  let queryError = false
+
+  // 2. Direct server-side PostgreSQL queries
+  try {
+    const [
+      totalProducts,
+      availableProducts,
+      featuredProducts,
+      totalCategories,
+      totalCollections,
+      totalGalleryItems,
+      settings,
+      rawProducts,
+    ] = await Promise.all([
+      prisma.product.count(),
+      prisma.product.count({ where: { available: true } }),
+      prisma.product.count({ where: { featured: true } }),
+      prisma.category.count(),
+      prisma.collection.count(),
+      prisma.galleryItem.count(),
+      prisma.storeSettings.findUnique({ where: { id: 'singleton' } }),
+      prisma.product.findMany({
+        take: 6,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          price: true,
+          available: true,
+          featured: true,
+          createdAt: true,
+          category: {
+            select: { name: true },
+          },
+          collection: {
+            select: { name: true },
+          },
+          images: {
+            take: 1,
+            orderBy: { sortOrder: 'asc' },
+            select: { url: true, alt: true },
+          },
+        },
+      }),
+    ])
+
+    stats = {
+      totalProducts,
+      availableProducts,
+      featuredProducts,
+      totalCategories,
+      totalCollections,
+      totalGalleryItems,
+    }
+
+    storeSettings = settings
+
+    recentProducts = rawProducts.map((p) => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      price: p.price,
+      available: p.available,
+      featured: p.featured,
+      createdAt: p.createdAt,
+      categoryName: p.category?.name ?? null,
+      collectionName: p.collection?.name ?? null,
+      imageUrl: p.images[0]?.url ?? null,
+      imageAlt: p.images[0]?.alt ?? null,
+    }))
+  } catch (error) {
+    // Log server-side only; never expose database errors to client
+    console.error('Failed to load admin dashboard statistics from database:', error)
+    queryError = true
+  }
 
   return (
-    <div className="flex-1 flex flex-col">
-      {/* Admin Top Navigation Bar */}
-      <header className="w-full bg-white border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="font-serif text-lg font-semibold tracking-wide text-main">
-              Shewa Fashion
-            </span>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary-light text-primary">
-              Admin
-            </span>
+    <AdminShell admin={admin} title="Overview" breadcrumb="Management">
+      <div className="space-y-6 sm:space-y-8">
+        {/* Welcome Greeting Banner */}
+        <div className="bg-surface rounded-2xl border border-border p-6 sm:p-8 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-xs font-semibold uppercase tracking-wider text-primary">
+                Executive Portal
+              </span>
+              <span className="text-secondary/40">•</span>
+              <span className="text-xs text-secondary font-medium">
+                {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+              </span>
+            </div>
+            <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-main">
+              Welcome back, {admin.name}
+            </h1>
+            <p className="text-xs sm:text-sm text-secondary mt-1 max-w-2xl leading-relaxed">
+              Here is your store catalogue overview, recent product additions, and active inventory status.
+            </p>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <p className="text-xs font-medium text-main">{admin.name}</p>
-              <p className="text-[11px] text-secondary">{admin.email}</p>
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="px-3.5 py-2 rounded-xl bg-background border border-border text-left">
+              <span className="text-[10px] text-secondary uppercase tracking-wider font-semibold block">
+                Session Status
+              </span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="text-xs font-semibold text-main">Active & Verified</span>
+              </div>
             </div>
-            <form action={logoutAction}>
-              <Button type="submit" variant="outline" size="sm">
-                Sign Out
-              </Button>
-            </form>
           </div>
         </div>
-      </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="bg-white border border-border rounded-2xl p-8 sm:p-12 shadow-xs text-center max-w-2xl mx-auto my-12">
-          <div className="w-14 h-14 mx-auto mb-5 rounded-full bg-primary-light flex items-center justify-center text-primary">
+        {/* Database Query Error Alert (if database fails) */}
+        {queryError && (
+          <div
+            role="alert"
+            className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm flex items-start gap-3"
+          >
             <svg
-              className="w-7 h-7"
+              className="w-5 h-5 text-amber-600 shrink-0 mt-0.5"
               fill="none"
               viewBox="0 0 24 24"
-              strokeWidth={1.75}
+              strokeWidth={2}
               stroke="currentColor"
-              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"
+                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
               />
             </svg>
+            <div>
+              <p className="font-semibold text-amber-950">Database Statistics Temporarily Unavailable</p>
+              <p className="text-amber-800 text-xs mt-0.5">
+                Could not retrieve real-time statistics from PostgreSQL. Please ensure the database server is running and refresh the page.
+              </p>
+            </div>
           </div>
+        )}
 
-          <h2 className="font-serif text-2xl font-semibold text-main mb-2">
-            Secure Admin Authentication Active
+        {/* 1. Statistics Cards */}
+        <section aria-labelledby="overview-stats-heading">
+          <h2 id="overview-stats-heading" className="sr-only">
+            Catalogue Overview Statistics
           </h2>
-          <p className="text-sm text-secondary mb-6 leading-relaxed">
-            You are securely authenticated as an administrator. The complete admin dashboard widgets, catalogue management, and inventory controls will be implemented in a subsequent phase.
-          </p>
+          <StatsCards stats={stats} />
+        </section>
 
-          <div className="bg-background rounded-xl p-4 border border-border text-left space-y-2 mb-8">
-            <div className="flex justify-between text-xs py-1 border-b border-border/60">
-              <span className="text-secondary">Administrator Name:</span>
-              <span className="font-semibold text-main">{admin.name}</span>
-            </div>
-            <div className="flex justify-between text-xs py-1 border-b border-border/60">
-              <span className="text-secondary">Email:</span>
-              <span className="font-medium text-main">{admin.email}</span>
-            </div>
-            <div className="flex justify-between text-xs py-1 border-b border-border/60">
-              <span className="text-secondary">Assigned Role:</span>
-              <span className="inline-block uppercase tracking-wider text-[11px] font-bold text-primary">
-                {admin.role}
-              </span>
-            </div>
-            <div className="flex justify-between text-xs py-1">
-              <span className="text-secondary">Session Status:</span>
-              <span className="text-emerald-700 font-medium">Valid & Active</span>
-            </div>
-          </div>
+        {/* 2. Recent Products Table */}
+        <section aria-labelledby="recent-products-heading">
+          <RecentProductsTable products={recentProducts} />
+        </section>
 
-          <form action={logoutAction}>
-            <Button type="submit" variant="primary" size="md">
-              Sign Out
-            </Button>
-          </form>
-        </div>
-      </main>
-    </div>
+        {/* 3. Store Identity & Quick Launch */}
+        <section aria-labelledby="store-overview-heading">
+          <StoreOverview settings={storeSettings} />
+        </section>
+      </div>
+    </AdminShell>
   )
 }

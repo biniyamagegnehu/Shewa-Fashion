@@ -14,6 +14,7 @@
     "db:verify": "tsx prisma/verify-db.ts",
     "test:api-response": "tsx scripts/test-api-response.ts",
     "test:catalog": "tsx scripts/test-catalog.ts",
+    "test:auth": "tsx -r ./scripts/stub-server-only.cjs scripts/test-auth.ts",
     "create-admin": "tsx scripts/create-admin.ts",
     "db:studio": "npm run prisma -- studio"
   },

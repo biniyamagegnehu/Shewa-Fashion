@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/auth'
 import { AdminShell } from '@/components/admin/admin-shell'
-import { ProductForm } from '@/components/admin/product-form'
+import { ProductForm, InitialProductData } from '@/components/admin/product-form'
 import { updateProductAction } from '@/app/actions/products'
 
 export const instant = false
@@ -39,9 +39,6 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
       category: {
         select: { id: true, name: true },
       },
-      collection: {
-        select: { id: true, name: true },
-      },
     },
   })
 
@@ -49,37 +46,24 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     notFound()
   }
 
-  // 4. Fetch categories and collections for form dropdowns
-  const [categories, collections] = await Promise.all([
-    prisma.category.findMany({
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true, slug: true },
-    }),
-    prisma.collection.findMany({
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true, slug: true },
-    }),
-  ])
+  // 4. Fetch categories for form dropdown
+  const categories = await prisma.category.findMany({
+    orderBy: { name: 'asc' },
+    select: { id: true, name: true, slug: true },
+  })
 
-  // 5. Format initial form data
-  const initialData = {
+  // 5. Format initial form data for the simplified 7-field form
+  const initialData: InitialProductData = {
     id: product.id,
     name: product.name,
-    slug: product.slug,
-    description: product.description,
     price: product.price,
+    description: product.description,
     categoryId: product.categoryId,
-    collectionId: product.collectionId,
     available: product.available,
-    featured: product.featured,
-    images: product.images.map((img) => ({
-      url: img.url,
-      alt: img.alt || undefined,
-    })),
-    options: product.options.map((opt) => ({
-      type: opt.type,
-      value: opt.value,
-    })),
+    imageUrl: product.images[0]?.url || '',
+    sizes: product.options
+      .filter((o) => o.type === 'SIZE' || o.type === 'SHOE_SIZE' || o.type === 'ONE_SIZE')
+      .map((o) => o.value),
   }
 
   // Bind the product ID to the update action
@@ -87,22 +71,12 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
 
   return (
     <AdminShell admin={admin} title="Edit Product" breadcrumb={`Products / Edit / ${product.name}`}>
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div>
-          <h1 className="font-serif text-2xl sm:text-3xl font-bold text-main">
-            Edit: {product.name}
-          </h1>
-          <p className="text-xs sm:text-sm text-secondary mt-1">
-            Update pricing, descriptions, images, options, or toggle public availability.
-          </p>
-        </div>
-
+      <div className="py-2 sm:py-4">
         <ProductForm
           initialData={initialData}
           categories={categories}
-          collections={collections}
           action={boundAction}
-          submitLabel="Update Product"
+          submitLabel="Save Changes"
           isEdit={true}
         />
       </div>

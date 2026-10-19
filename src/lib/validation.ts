@@ -352,17 +352,15 @@ export function parseProductInput(raw: unknown): ParseResult<ProductInput> {
     errors.push({ field: 'slug', message: 'Slug can only contain lowercase alphanumeric characters and hyphens.' })
   }
 
-  // 3. Description (required, 5 - 3000 chars)
-  const descResult = requireString(body.description, 'description', 'Description')
+  // 3. Description (optional, max 3000 chars)
   let description = ''
-  if (typeof descResult !== 'string') {
-    errors.push(descResult)
-  } else if (descResult.length < 5) {
-    errors.push({ field: 'description', message: 'Description must be at least 5 characters.' })
-  } else if (descResult.length > 3000) {
-    errors.push({ field: 'description', message: 'Description cannot exceed 3,000 characters.' })
-  } else {
-    description = descResult
+  if (typeof body.description === 'string' && body.description.trim().length > 0) {
+    const descTrimmed = body.description.trim()
+    if (descTrimmed.length > 3000) {
+      errors.push({ field: 'description', message: 'Description cannot exceed 3,000 characters.' })
+    } else {
+      description = descTrimmed
+    }
   }
 
   // 4. Price (ETB integer, must be >= 0 and <= 10,000,000)

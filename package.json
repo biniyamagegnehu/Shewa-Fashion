@@ -18,6 +18,7 @@
     "test:dashboard": "tsx -r ./scripts/stub-server-only.cjs scripts/test-dashboard.ts",
     "test:products": "tsx -r ./scripts/stub-server-only.cjs scripts/test-products.ts",
     "test:simplified-products": "tsx -r ./scripts/stub-server-only.cjs scripts/test-simplified-products.ts",
+    "test:categories": "tsx -r ./scripts/stub-server-only.cjs scripts/test-categories.ts",
     "create-admin": "tsx scripts/create-admin.ts",
     "db:studio": "npm run prisma -- studio"
   },

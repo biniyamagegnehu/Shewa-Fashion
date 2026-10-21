@@ -41,7 +41,10 @@ function NavLinksFallback() {
   );
 }
 
-export function Navbar() {
+import type { StoreSettingsRecord } from "@/lib/products";
+import Image from "next/image";
+
+export function Navbar({ settings }: { settings?: StoreSettingsRecord | null }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -53,10 +56,23 @@ export function Navbar() {
             <div className="flex items-center">
               <Link
                 href="/"
-                className="font-serif text-lg sm:text-xl md:text-2xl font-semibold tracking-[0.18em] uppercase text-main hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xs"
+                className="font-serif text-lg sm:text-xl md:text-2xl font-semibold tracking-[0.18em] uppercase text-main hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xs flex items-center gap-2.5"
               >
-                Shewa Fashion
-                <span className="text-accent-gold font-normal">.</span>
+                {settings?.logoUrl && (
+                  <div className="relative w-7 h-7 sm:w-8 sm:h-8 shrink-0">
+                    <Image
+                      src={settings.logoUrl}
+                      alt={settings.storeName || "Shewa Fashion"}
+                      fill
+                      sizes="32px"
+                      className="object-contain"
+                    />
+                  </div>
+                )}
+                <span>
+                  {settings?.storeName || "Shewa Fashion"}
+                  <span className="text-accent-gold font-normal">.</span>
+                </span>
               </Link>
             </div>
 

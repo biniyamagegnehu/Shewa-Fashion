@@ -51,20 +51,24 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({
+import { getStoreSettings } from "@/lib/products";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await getStoreSettings();
+
   return (
     <html
       lang="en"
       className={`${playfair.variable} ${plusJakarta.variable}`}
     >
       <body className="min-h-screen flex flex-col bg-background text-main antialiased selection:bg-primary-light selection:text-main">
-        <AppHeader />
+        <AppHeader settings={settings} />
         <main className="flex-1 w-full">{children}</main>
-        <AppFooter />
+        <AppFooter settings={settings} />
       </body>
     </html>
   );

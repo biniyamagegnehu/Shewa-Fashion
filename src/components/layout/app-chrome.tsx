@@ -4,35 +4,40 @@ import React, { Suspense } from 'react'
 import { usePathname } from 'next/navigation'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
+import type { StoreSettingsRecord } from '@/lib/products'
 
-function HeaderInner() {
+interface ChromeProps {
+  settings?: StoreSettingsRecord | null
+}
+
+function HeaderInner({ settings }: ChromeProps) {
   const pathname = usePathname()
   if (pathname?.startsWith('/admin')) {
     return null
   }
-  return <Navbar />
+  return <Navbar settings={settings} />
 }
 
-function FooterInner() {
+function FooterInner({ settings }: ChromeProps) {
   const pathname = usePathname()
   if (pathname?.startsWith('/admin')) {
     return null
   }
-  return <Footer />
+  return <Footer settings={settings} />
 }
 
-export function AppHeader() {
+export function AppHeader({ settings }: ChromeProps) {
   return (
     <Suspense fallback={null}>
-      <HeaderInner />
+      <HeaderInner settings={settings} />
     </Suspense>
   )
 }
 
-export function AppFooter() {
+export function AppFooter({ settings }: ChromeProps) {
   return (
     <Suspense fallback={null}>
-      <FooterInner />
+      <FooterInner settings={settings} />
     </Suspense>
   )
 }

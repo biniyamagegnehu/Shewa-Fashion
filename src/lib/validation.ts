@@ -471,3 +471,348 @@ export function parseProductInput(raw: unknown): ParseResult<ProductInput> {
     },
   }
 }
+
+// ============================================================
+// Safe URL & Social Validation
+// ============================================================
+
+/**
+ * Check whether a URL uses a safe protocol (https:// or http:// for local dev/testing).
+ * Explicitly rejects javascript:, data:, vbscript:, and file: schemes.
+ */
+export function isSafeUrl(rawUrl: string): boolean {
+  if (!rawUrl || typeof rawUrl !== 'string') return false
+  const trimmed = rawUrl.trim()
+  if (!trimmed) return false
+
+  try {
+    const parsed = new URL(trimmed)
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:'
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Validate an optional or required safe URL field.
+ */
+export function validateSafeUrl(
+  raw: unknown,
+  field: string,
+  label: string,
+  required = false
+): string | null | ValidationDetail {
+  if (raw === null || raw === undefined || (typeof raw === 'string' && raw.trim().length === 0)) {
+    if (required) {
+      return { field, message: `${label} is required.` }
+    }
+    return null
+  }
+
+  if (typeof raw !== 'string') {
+    return { field, message: `${label} must be a valid URL string.` }
+  }
+
+  const str = raw.trim()
+  if (!isSafeUrl(str)) {
+    return { field, message: `${label} must be a valid HTTPS URL.` }
+  }
+
+  if (str.length > 500) {
+    return { field, message: `${label} cannot exceed 500 characters.` }
+  }
+
+  return str
+}
+
+/**
+ * Validate an optional email address.
+ */
+export function validateEmailOptional(raw: unknown, field: string = 'email'): string | null | ValidationDetail {
+  if (raw === null || raw === undefined || (typeof raw === 'string' && raw.trim().length === 0)) {
+    return null
+  }
+  if (typeof raw !== 'string') return null
+  const str = raw.trim().toLowerCase()
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(str) || str.length > 254) {
+    return { field, message: 'Enter a valid email address.' }
+  }
+  return str
+}
+
+/**
+ * Validate an optional phone / WhatsApp number.
+ */
+export function validatePhoneOptional(raw: unknown, field: string = 'phone'): string | null | ValidationDetail {
+  if (raw === null || raw === undefined || (typeof raw === 'string' && raw.trim().length === 0)) {
+    return null
+  }
+  if (typeof raw !== 'string') return null
+  const str = raw.trim()
+  // Allows digits, spaces, +, -, (, )
+  const phoneRegex = /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,25}$/
+  if (!phoneRegex.test(str) || str.length < 7 || str.length > 35) {
+    return { field, message: 'Enter a valid contact phone number.' }
+  }
+  return str
+}
+
+// ============================================================
+// Gallery Item Validation
+// ============================================================
+
+export interface GalleryItemInput {
+  title: string
+  imageUrl: string
+  alt: string
+  description: string | null
+  sortOrder: number
+  isPublished: boolean
+}
+
+export function parseGalleryItemInput(raw: unknown): ParseResult<GalleryItemInput> {
+  if (raw === null || typeof raw !== 'object') {
+    return { ok: false, errors: [{ field: '_form', message: 'Invalid gallery item payload.' }] }
+  }
+
+  const body = raw as Record<string, unknown>
+  const errors: ValidationDetail[] = []
+
+  // 1. Title (required, 2 - 120 chars)
+  const titleResult = requireString(body.title, 'title', 'Title')
+  let title = ''
+  if (typeof titleResult !== 'string') {
+    errors.push(titleResult)
+  } else if (titleResult.length < 2) {
+    errors.push({ field: 'title', message: 'Title must be at least 2 characters.' })
+  } else if (titleResult.length > 120) {
+    errors.push({ field: 'title', message: 'Title cannot exceed 120 characters.' })
+  } else {
+    title = titleResult
+  }
+
+  // 2. Image URL (required if file not uploaded directly)
+  let imageUrl = ''
+  if (typeof body.imageUrl === 'string' && body.imageUrl.trim()) {
+    imageUrl = body.imageUrl.trim()
+  } else if (body.imageUrl !== undefined && body.imageUrl !== null && body.imageUrl !== '') {
+    errors.push({ field: 'imageUrl', message: 'Invalid image URL.' })
+  }
+
+  // 3. Alt text (optional; defaults to title)
+  let alt = typeof body.alt === 'string' && body.alt.trim() ? body.alt.trim() : title
+
+  // 4. Description (optional, max 500 chars)
+  let description: string | null = null
+  if (typeof body.description === 'string' && body.description.trim()) {
+    const desc = body.description.trim()
+    if (desc.length > 500) {
+      errors.push({ field: 'description', message: 'Description cannot exceed 500 characters.' })
+    } else {
+      description = desc
+    }
+  }
+
+  // 5. Sort Order (optional integer, default 0)
+  let sortOrder = 0
+  if (body.sortOrder !== undefined && body.sortOrder !== null && body.sortOrder !== '') {
+    const parsed = Number(body.sortOrder)
+    if (Number.isInteger(parsed) && parsed >= -9999 && parsed <= 99999) {
+      sortOrder = parsed
+    } else {
+      errors.push({ field: 'sortOrder', message: 'Sort order must be an integer.' })
+    }
+  }
+
+  // 6. Publication Status (default true)
+  let isPublished = true
+  if (body.isPublished !== undefined && body.isPublished !== null) {
+    if (typeof body.isPublished === 'boolean') {
+      isPublished = body.isPublished
+    } else if (typeof body.isPublished === 'string') {
+      const lower = body.isPublished.toLowerCase().trim()
+      isPublished = lower === 'true' || lower === '1' || lower === 'on'
+    }
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors }
+  }
+
+  return {
+    ok: true,
+    data: {
+      title,
+      imageUrl,
+      alt,
+      description,
+      sortOrder,
+      isPublished,
+    },
+  }
+}
+
+// ============================================================
+// Store Settings Validation
+// ============================================================
+
+export interface StoreSettingsInput {
+  storeName: string
+  description: string | null
+  logoUrl: string | null
+  phone: string | null
+  email: string | null
+  whatsapp: string | null
+  address: string | null
+  openingHours: string | null
+  instagram: string | null
+  facebook: string | null
+  tiktok: string | null
+  telegram: string | null
+  googleMapsUrl: string | null
+}
+
+export function parseStoreSettingsInput(raw: unknown): ParseResult<StoreSettingsInput> {
+  if (raw === null || typeof raw !== 'object') {
+    return { ok: false, errors: [{ field: '_form', message: 'Invalid store settings payload.' }] }
+  }
+
+  const body = raw as Record<string, unknown>
+  const errors: ValidationDetail[] = []
+
+  // 1. Store Name (required, 2 - 80 chars)
+  const nameResult = requireString(body.storeName, 'storeName', 'Store name')
+  let storeName = 'Shewa Fashion'
+  if (typeof nameResult !== 'string') {
+    errors.push(nameResult)
+  } else if (nameResult.length < 2) {
+    errors.push({ field: 'storeName', message: 'Store name must be at least 2 characters.' })
+  } else if (nameResult.length > 80) {
+    errors.push({ field: 'storeName', message: 'Store name cannot exceed 80 characters.' })
+  } else {
+    storeName = nameResult
+  }
+
+  // 2. Description (optional, max 500 chars)
+  let description: string | null = null
+  if (typeof body.description === 'string' && body.description.trim()) {
+    const desc = body.description.trim()
+    if (desc.length > 500) {
+      errors.push({ field: 'description', message: 'Description cannot exceed 500 characters.' })
+    } else {
+      description = desc
+    }
+  }
+
+  // 3. Logo URL (optional string URL)
+  let logoUrl: string | null = null
+  if (typeof body.logoUrl === 'string' && body.logoUrl.trim()) {
+    logoUrl = body.logoUrl.trim()
+  }
+
+  // 4. Email (optional, validated format)
+  let email: string | null = null
+  const emailRes = validateEmailOptional(body.email, 'email')
+  if (emailRes && typeof emailRes !== 'string') {
+    errors.push(emailRes)
+  } else {
+    email = emailRes
+  }
+
+  // 5. Phone & WhatsApp (optional, validated format)
+  let phone: string | null = null
+  const phoneRes = validatePhoneOptional(body.phone, 'phone')
+  if (phoneRes && typeof phoneRes !== 'string') {
+    errors.push(phoneRes)
+  } else {
+    phone = phoneRes
+  }
+
+  let whatsapp: string | null = null
+  const whatsappRes = validatePhoneOptional(body.whatsapp, 'whatsapp')
+  if (whatsappRes && typeof whatsappRes !== 'string') {
+    errors.push(whatsappRes)
+  } else {
+    whatsapp = whatsappRes
+  }
+
+  // 6. Address & Opening Hours (optional, max 200 chars)
+  let address: string | null = null
+  if (typeof body.address === 'string' && body.address.trim()) {
+    const addr = body.address.trim()
+    if (addr.length > 200) {
+      errors.push({ field: 'address', message: 'Address cannot exceed 200 characters.' })
+    } else {
+      address = addr
+    }
+  }
+
+  let openingHours: string | null = null
+  if (typeof body.openingHours === 'string' && body.openingHours.trim()) {
+    const hours = body.openingHours.trim()
+    if (hours.length > 200) {
+      errors.push({ field: 'openingHours', message: 'Opening hours cannot exceed 200 characters.' })
+    } else {
+      openingHours = hours
+    }
+  }
+
+  // 7. Social Links (safe handles or URLs)
+  function sanitizeSocialHandle(val: unknown, fieldName: string): string | null {
+    if (typeof val !== 'string' || !val.trim()) return null
+    const str = val.trim()
+    if (str.startsWith('http://') || str.startsWith('https://')) {
+      if (!isSafeUrl(str)) {
+        errors.push({ field: fieldName, message: `${fieldName} URL must use HTTPS.` })
+        return null
+      }
+      return str
+    }
+    // Allow handles like @shewafashion or t.me/shewafashion or plain names
+    if (str.length > 100) {
+      errors.push({ field: fieldName, message: `${fieldName} handle is too long.` })
+      return null
+    }
+    return str
+  }
+
+  const instagram = sanitizeSocialHandle(body.instagram, 'instagram')
+  const facebook = sanitizeSocialHandle(body.facebook, 'facebook')
+  const tiktok = sanitizeSocialHandle(body.tiktok, 'tiktok')
+  const telegram = sanitizeSocialHandle(body.telegram, 'telegram')
+
+  // 8. Google Maps URL (must be safe URL if provided)
+  let googleMapsUrl: string | null = null
+  if (typeof body.googleMapsUrl === 'string' && body.googleMapsUrl.trim()) {
+    const mapsRes = validateSafeUrl(body.googleMapsUrl, 'googleMapsUrl', 'Google Maps link')
+    if (mapsRes && typeof mapsRes !== 'string') {
+      errors.push(mapsRes)
+    } else {
+      googleMapsUrl = mapsRes
+    }
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors }
+  }
+
+  return {
+    ok: true,
+    data: {
+      storeName,
+      description,
+      logoUrl,
+      phone,
+      email,
+      whatsapp,
+      address,
+      openingHours,
+      instagram,
+      facebook,
+      tiktok,
+      telegram,
+      googleMapsUrl,
+    },
+  }
+}

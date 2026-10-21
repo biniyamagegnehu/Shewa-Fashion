@@ -10,6 +10,7 @@
  */
 
 import { createHash, createHmac, randomBytes } from 'crypto'
+import { prisma } from '@/lib/prisma'
 
 export const MAX_IMAGE_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
 
@@ -144,11 +145,12 @@ export function isStorageConfigured(): boolean {
  * Generate a safe, cryptographically unique storage key.
  * Never uses raw client filenames to prevent path traversal or collision attacks.
  */
-export function generateSafeStorageKey(ext: string): string {
+export function generateSafeStorageKey(ext: string, folder: string = 'products'): string {
   const timestamp = Date.now()
   const random = randomBytes(8).toString('hex')
   const cleanExt = ext.replace(/^\./, '').toLowerCase()
-  return `products/${timestamp}-${random}.${cleanExt}`
+  const cleanFolder = folder.replace(/[^a-zA-Z0-9_-]/g, '') || 'products'
+  return `${cleanFolder}/${timestamp}-${random}.${cleanExt}`
 }
 
 /**
@@ -290,11 +292,12 @@ async function uploadToBlob(
 }
 
 /**
- * Main server-side upload entry point.
+ * Main server-side upload entry point with folder namespacing.
  * Validates file content, enforces allowlists, and persists to configured storage.
  */
-export async function uploadProductImage(
+export async function uploadImage(
   fileOrBuffer: Buffer | ArrayBuffer | Uint8Array,
+  folder: string = 'products',
   originalFilename?: string
 ): Promise<UploadResult> {
   const buffer = Buffer.isBuffer(fileOrBuffer)
@@ -313,12 +316,12 @@ export async function uploadProductImage(
     return {
       ok: false,
       error:
-        'Image storage is not configured. Please set STORAGE_BUCKET, STORAGE_ACCESS_KEY_ID, and STORAGE_SECRET_ACCESS_KEY in .env.local to enable product image uploads.',
+        'Image storage is not configured. Please set STORAGE_BUCKET, STORAGE_ACCESS_KEY_ID, and STORAGE_SECRET_ACCESS_KEY in .env.local to enable image uploads.',
     }
   }
 
   // 3. Generate Safe Storage Key
-  const key = generateSafeStorageKey(validation.ext!)
+  const key = generateSafeStorageKey(validation.ext!, folder)
 
   // 4. Upload to Configured Provider
   if (config.blobToken) {
@@ -329,10 +332,70 @@ export async function uploadProductImage(
 }
 
 /**
- * Delete a product image from storage.
- * Used for replacing images or cleaning up orphaned uploads if database persistence fails.
+ * Upload a product image (stored in products/ namespace).
  */
-export async function deleteProductImage(imageUrlOrKey: string): Promise<boolean> {
+export async function uploadProductImage(
+  fileOrBuffer: Buffer | ArrayBuffer | Uint8Array,
+  originalFilename?: string
+): Promise<UploadResult> {
+  return uploadImage(fileOrBuffer, 'products', originalFilename)
+}
+
+/**
+ * Upload a gallery lookbook image (stored in gallery/ namespace).
+ */
+export async function uploadGalleryImage(
+  fileOrBuffer: Buffer | ArrayBuffer | Uint8Array,
+  originalFilename?: string
+): Promise<UploadResult> {
+  return uploadImage(fileOrBuffer, 'gallery', originalFilename)
+}
+
+/**
+ * Upload a store settings image / logo (stored in settings/ namespace).
+ */
+export async function uploadSettingsImage(
+  fileOrBuffer: Buffer | ArrayBuffer | Uint8Array,
+  originalFilename?: string
+): Promise<UploadResult> {
+  return uploadImage(fileOrBuffer, 'settings', originalFilename)
+}
+
+/**
+ * Check if an image URL is currently referenced by other products, gallery items, or store settings.
+ * Prevents accidentally deleting images that are shared.
+ */
+export async function isImageShared(
+  imageUrl: string,
+  excludeGalleryItemId?: string
+): Promise<boolean> {
+  if (!imageUrl) return false
+  try {
+    const [productCount, galleryCount, settingsCount] = await Promise.all([
+      prisma.productImage.count({ where: { url: imageUrl } }),
+      prisma.galleryItem.count({
+        where: {
+          imageUrl,
+          ...(excludeGalleryItemId ? { id: { not: excludeGalleryItemId } } : {}),
+        },
+      }),
+      prisma.storeSettings.count({ where: { logoUrl: imageUrl } }),
+    ])
+    return productCount + galleryCount + settingsCount > 0
+  } catch (err) {
+    console.error('Error checking if image is shared:', err)
+    return true // fail-safe: assume shared to prevent accidental deletion
+  }
+}
+
+/**
+ * Delete a stored image from cloud storage safely.
+ * Only deletes keys within recognized namespaces (products/, gallery/, settings/).
+ */
+export async function deleteStoredImage(
+  imageUrlOrKey: string,
+  allowedPrefixes: string[] = ['products/', 'gallery/', 'settings/']
+): Promise<boolean> {
   if (!imageUrlOrKey || !isStorageConfigured()) {
     return false
   }
@@ -365,8 +428,8 @@ export async function deleteProductImage(imageUrlOrKey: string): Promise<boolean
     }
   }
 
-  if (!key.startsWith('products/')) {
-    // Only delete keys within the products namespace for safety
+  if (!allowedPrefixes.some((prefix) => key.startsWith(prefix))) {
+    // Only delete keys within the allowed namespaces for safety
     return false
   }
 
@@ -437,4 +500,12 @@ export async function deleteProductImage(imageUrlOrKey: string): Promise<boolean
   }
 
   return false
+}
+
+/**
+ * Delete a product image from storage.
+ * Maintained for backward compatibility.
+ */
+export async function deleteProductImage(imageUrlOrKey: string): Promise<boolean> {
+  return deleteStoredImage(imageUrlOrKey, ['products/', 'gallery/', 'settings/'])
 }

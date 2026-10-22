@@ -72,7 +72,7 @@ export function CollectionDeleteDialog({
 
         <p className="text-xs sm:text-sm text-secondary mt-2 leading-relaxed">
           Are you sure you want to delete{' '}
-          <span className="font-semibold text-main">"{collectionName}"</span>?
+          <span className="font-semibold text-main">&ldquo;{collectionName}&rdquo;</span>?
         </p>
 
         {productCount > 0 ? (

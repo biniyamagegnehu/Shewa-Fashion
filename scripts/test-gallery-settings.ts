@@ -329,7 +329,7 @@ async function run() {
   assert(retrieved?.storeName === 'Shewa Fashion Addis', 'getStoreSettings: returns saved storeName')
   assert(retrieved?.email === 'hello@shewafashion.com', 'getStoreSettings: returns saved email')
   assert(retrieved?.phone === '+251 91 123 4567', 'getStoreSettings: returns saved phone')
-  assert(retrieved?.googleMapsUrl?.startsWith('https://'), 'getStoreSettings: returns safe maps URL')
+  assert(Boolean(retrieved?.googleMapsUrl?.startsWith('https://')), 'getStoreSettings: returns safe maps URL')
 
   // Test optional fields absent
   const parsedSparse = parseStoreSettingsInput({

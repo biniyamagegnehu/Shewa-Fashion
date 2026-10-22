@@ -1,8 +1,5 @@
-import { NextResponse } from 'next/server'
 import { getStoreSettings } from '@/lib/products'
 import { apiSuccess, apiInternalError } from '@/lib/api-response'
-
-export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {

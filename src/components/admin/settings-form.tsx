@@ -202,6 +202,7 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
                   src={logoPreview}
                   alt="Store Logo"
                   fill
+                  unoptimized
                   sizes="80px"
                   className="object-contain p-2"
                 />

@@ -16,10 +16,28 @@ import { CategoryPills } from "@/components/shop/category-pills";
 import { ProductGrid } from "@/components/shop/product-grid";
 import { Pagination } from "@/components/shop/pagination";
 
+import { getCanonicalUrl, buildBreadcrumbJsonLd, safeJsonLd } from "@/lib/seo";
+
 export const metadata: Metadata = {
   title: "Shop Catalogue | Shewa Fashion",
   description:
     "Explore contemporary Ethiopian fashion, artisan leather shoes, handcrafted bags, and heritage accessories.",
+  alternates: {
+    canonical: getCanonicalUrl("/shop"),
+  },
+  openGraph: {
+    title: "Shop Catalogue | Shewa Fashion",
+    description:
+      "Explore contemporary Ethiopian fashion, artisan leather shoes, handcrafted bags, and heritage accessories.",
+    url: getCanonicalUrl("/shop"),
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Shop Catalogue | Shewa Fashion",
+    description:
+      "Explore contemporary Ethiopian fashion, artisan leather shoes, handcrafted bags, and heritage accessories.",
+  },
 };
 
 // Allow blocking route for uncached database access with Next.js 16 Cache Components
@@ -65,6 +83,17 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
 
   return (
     <main className="py-8 sm:py-12 bg-background min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: safeJsonLd(
+            buildBreadcrumbJsonLd([
+              { name: "Home", url: "/" },
+              { name: "Shop", url: "/shop" },
+            ])
+          ),
+        }}
+      />
       <Container>
         {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" className="mb-4">

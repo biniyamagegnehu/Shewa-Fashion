@@ -6,11 +6,24 @@ import { Container } from "@/components/ui/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { getCollections } from "@/lib/products";
 
+import { getCanonicalUrl, buildBreadcrumbJsonLd, safeJsonLd } from "@/lib/seo";
+
 export const metadata: Metadata = {
   title: "Collections | Shewa Fashion",
   description:
     "Explore curated collections at Shewa Fashion — New Arrivals, Best Sellers, Everyday Essentials, Ethiopian Heritage, and Seasonal Edits.",
+  alternates: {
+    canonical: getCanonicalUrl("/collections"),
+  },
   openGraph: {
+    title: "Collections | Shewa Fashion",
+    description:
+      "Explore curated fashion collections at Shewa Fashion. Handcrafted Ethiopian contemporary style.",
+    url: getCanonicalUrl("/collections"),
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
     title: "Collections | Shewa Fashion",
     description:
       "Explore curated fashion collections at Shewa Fashion. Handcrafted Ethiopian contemporary style.",
@@ -40,8 +53,17 @@ const DEFAULT_FALLBACK =
 export default async function CollectionsPage() {
   const collections = await getCollections();
 
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "Home", url: "/" },
+    { name: "Collections", url: "/collections" },
+  ]);
+
   return (
     <main className="py-8 sm:py-12 bg-background min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
+      />
       <Container>
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-4">

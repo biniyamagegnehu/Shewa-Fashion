@@ -17,7 +17,14 @@ const plusJakarta = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
+import { SITE_URL, buildStoreJsonLd, buildWebSiteJsonLd, safeJsonLd } from "@/lib/seo";
+import { getStoreSettings } from "@/lib/products";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: "./",
+  },
   title: {
     default: "Shewa Fashion | Modern Ethiopian Fashion & Contemporary Apparel",
     template: "%s | Shewa Fashion",
@@ -37,11 +44,17 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://shewafashion.com",
+    url: SITE_URL,
     title: "Shewa Fashion | Modern Ethiopian Fashion",
     description:
       "Contemporary Ethiopian fashion honoring heritage with modern tailoring, fine craftsmanship, and timeless elegance.",
     siteName: "Shewa Fashion",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Shewa Fashion | Modern Ethiopian Fashion & Contemporary Apparel",
+    description:
+      "Contemporary Ethiopian fashion honoring heritage with modern tailoring, fine craftsmanship, and timeless elegance.",
   },
 };
 
@@ -51,14 +64,14 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-import { getStoreSettings } from "@/lib/products";
-
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const settings = await getStoreSettings();
+  const storeJsonLd = buildStoreJsonLd(settings);
+  const websiteJsonLd = buildWebSiteJsonLd();
 
   return (
     <html
@@ -66,6 +79,14 @@ export default async function RootLayout({
       className={`${playfair.variable} ${plusJakarta.variable}`}
     >
       <body className="min-h-screen flex flex-col bg-background text-main antialiased selection:bg-primary-light selection:text-main">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(storeJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(websiteJsonLd) }}
+        />
         <AppHeader settings={settings} />
         <main className="flex-1 w-full">{children}</main>
         <AppFooter settings={settings} />

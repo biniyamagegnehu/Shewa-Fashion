@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Button } from "@/components/ui/button";
+import { getCanonicalUrl, buildBreadcrumbJsonLd, safeJsonLd } from "@/lib/seo";
 
 // Allow blocking route for Next.js 16 Cache Components
 export const instant = false;
@@ -13,7 +14,18 @@ export const metadata: Metadata = {
   title: "About Us | Shewa Fashion",
   description:
     "Learn about Shewa Fashion — an Ethiopian fashion brand celebrating authentic textile craftsmanship, contemporary silhouettes, and everyday modern elegance.",
+  alternates: {
+    canonical: getCanonicalUrl("/about"),
+  },
   openGraph: {
+    title: "About Us | Shewa Fashion",
+    description:
+      "Celebrating Ethiopian textile craftsmanship and contemporary African silhouettes.",
+    url: getCanonicalUrl("/about"),
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
     title: "About Us | Shewa Fashion",
     description:
       "Celebrating Ethiopian textile craftsmanship and contemporary African silhouettes.",
@@ -139,8 +151,17 @@ const materials = [
 ];
 
 export default function AboutPage() {
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "Home", url: "/" },
+    { name: "About", url: "/about" },
+  ]);
+
   return (
     <main className="py-8 sm:py-12 bg-background min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
+      />
       <Container>
         {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" className="mb-6 sm:mb-8">

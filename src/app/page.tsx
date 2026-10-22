@@ -9,10 +9,28 @@ import { LookbookPreview } from "@/components/home/lookbook-preview";
 import { BrandStory } from "@/components/home/brand-story";
 import { HomeCta } from "@/components/home/home-cta";
 
+import { getCanonicalUrl } from "@/lib/seo";
+
 export const metadata: Metadata = {
   title: "Shewa Fashion | Modern Ethiopian Fashion & Contemporary Apparel",
   description:
     "Discover contemporary Ethiopian fashion, handcrafted leather footwear, structural bags, and artisan accessories. Inspired by Shewa, designed for the modern wardrobe.",
+  alternates: {
+    canonical: getCanonicalUrl("/"),
+  },
+  openGraph: {
+    title: "Shewa Fashion | Modern Ethiopian Fashion & Contemporary Apparel",
+    description:
+      "Discover contemporary Ethiopian fashion, handcrafted leather footwear, structural bags, and artisan accessories.",
+    url: getCanonicalUrl("/"),
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Shewa Fashion | Modern Ethiopian Fashion & Contemporary Apparel",
+    description:
+      "Discover contemporary Ethiopian fashion, handcrafted leather footwear, structural bags, and artisan accessories.",
+  },
 };
 
 export default function HomePage() {

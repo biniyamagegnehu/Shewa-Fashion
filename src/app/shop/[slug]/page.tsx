@@ -14,6 +14,13 @@ import { ProductOptions } from "@/components/product/product-options";
 import { ContactCta } from "@/components/product/contact-cta";
 import { RelatedProducts } from "@/components/product/related-products";
 
+import {
+  getCanonicalUrl,
+  buildProductJsonLd,
+  buildBreadcrumbJsonLd,
+  safeJsonLd,
+} from "@/lib/seo";
+
 // Allow blocking route for uncached database access with Next.js 16 Cache Components
 export const instant = false;
 
@@ -31,17 +38,28 @@ export async function generateMetadata({
     return {
       title: "Product Not Found | Shewa Fashion",
       description: "The requested fashion piece could not be found.",
+      robots: { index: false, follow: false },
     };
   }
 
   const primaryImage = product.images[0]?.url;
+  const productUrl = getCanonicalUrl(`/shop/${product.slug}`);
+  const description =
+    product.description.length > 160
+      ? `${product.description.slice(0, 157)}...`
+      : product.description;
 
   return {
     title: `${product.name} | Shewa Fashion`,
-    description: product.description,
+    description,
+    alternates: {
+      canonical: productUrl,
+    },
     openGraph: {
       title: `${product.name} | Shewa Fashion`,
-      description: product.description,
+      description,
+      url: productUrl,
+      type: "article",
       images: primaryImage
         ? [
             {
@@ -52,6 +70,12 @@ export async function generateMetadata({
             },
           ]
         : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} | Shewa Fashion`,
+      description,
+      images: primaryImage ? [primaryImage] : [],
     },
   };
 }
@@ -70,8 +94,33 @@ export default async function ProductPage({ params }: ProductPageProps) {
     getStoreSettings(),
   ]);
 
+  const productJsonLd = buildProductJsonLd(product);
+  const breadcrumbItems = [
+    { name: "Home", url: "/" },
+    { name: "Shop", url: "/shop" },
+  ];
+  if (product.category) {
+    breadcrumbItems.push({
+      name: product.category.name,
+      url: `/categories/${product.category.slug}`,
+    });
+  }
+  breadcrumbItems.push({
+    name: product.name,
+    url: `/shop/${product.slug}`,
+  });
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(breadcrumbItems);
+
   return (
     <main className="py-8 sm:py-12 bg-background min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
+      />
       <Container>
         {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" className="mb-6 sm:mb-8">

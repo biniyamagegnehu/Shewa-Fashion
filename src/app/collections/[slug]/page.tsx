@@ -9,6 +9,7 @@ import { normalizeSort } from "@/lib/products";
 import { ProductGrid } from "@/components/shop/product-grid";
 import { Pagination } from "@/components/shop/pagination";
 import { ShopSort } from "@/components/shop/shop-sort";
+import { getCanonicalUrl, buildBreadcrumbJsonLd, safeJsonLd } from "@/lib/seo";
 
 // Allow blocking route for uncached database access with Next.js 16 Cache Components
 export const instant = false;
@@ -45,22 +46,34 @@ export async function generateMetadata({
     return {
       title: "Collection Not Found | Shewa Fashion",
       description: "The requested collection could not be found.",
+      robots: { index: false, follow: false },
     };
   }
 
+  const canonicalUrl = getCanonicalUrl(`/collections/${slug}`);
+  const description =
+    collection.description ||
+    `Shop the ${collection.name} collection at Shewa Fashion — handcrafted Ethiopian contemporary fashion.`;
+
   return {
     title: `${collection.name} | Shewa Fashion`,
-    description:
-      collection.description ||
-      `Shop the ${collection.name} collection at Shewa Fashion — handcrafted Ethiopian contemporary fashion.`,
+    description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: `${collection.name} | Shewa Fashion`,
-      description:
-        collection.description ||
-        `Shop the ${collection.name} collection at Shewa Fashion.`,
+      description,
+      url: canonicalUrl,
+      type: "website",
       images: collection.image
         ? [{ url: collection.image, alt: collection.name }]
         : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${collection.name} | Shewa Fashion`,
+      description,
     },
   };
 }
@@ -100,8 +113,18 @@ export default async function CollectionPage({
   const imageSrc =
     collection.image || FALLBACK_IMAGES[collection.slug] || DEFAULT_FALLBACK;
 
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "Home", url: "/" },
+    { name: "Collections", url: "/collections" },
+    { name: collection.name, url: `/collections/${slug}` },
+  ]);
+
   return (
     <main className="py-8 sm:py-12 bg-background min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
+      />
       <Container>
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-6 sm:mb-8">

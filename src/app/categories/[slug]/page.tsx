@@ -29,6 +29,8 @@ const FALLBACK_IMAGES: Record<string, string> = {
 const DEFAULT_FALLBACK =
   "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1400&q=80";
 
+import { getCanonicalUrl, buildBreadcrumbJsonLd, safeJsonLd } from "@/lib/seo";
+
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -44,22 +46,35 @@ export async function generateMetadata({
     return {
       title: "Category Not Found | Shewa Fashion",
       description: "The requested category could not be found.",
+      robots: { index: false, follow: false },
     };
   }
 
+  const categoryUrl = getCanonicalUrl(`/categories/${category.slug}`);
+  const description =
+    category.description ||
+    `Shop ${category.name} at Shewa Fashion — handcrafted Ethiopian contemporary fashion.`;
+
   return {
     title: `${category.name} | Shewa Fashion`,
-    description:
-      category.description ||
-      `Shop ${category.name} at Shewa Fashion — handcrafted Ethiopian contemporary fashion.`,
+    description,
+    alternates: {
+      canonical: categoryUrl,
+    },
     openGraph: {
       title: `${category.name} | Shewa Fashion`,
-      description:
-        category.description ||
-        `Shop ${category.name} at Shewa Fashion.`,
+      description,
+      url: categoryUrl,
+      type: "website",
       images: category.image
         ? [{ url: category.image, alt: category.name }]
         : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${category.name} | Shewa Fashion`,
+      description,
+      images: category.image ? [category.image] : [],
     },
   };
 }
@@ -98,9 +113,18 @@ export default async function CategoryPage({
 
   const imageSrc =
     category.image || FALLBACK_IMAGES[category.slug] || DEFAULT_FALLBACK;
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "Home", url: "/" },
+    { name: "Categories", url: "/categories" },
+    { name: category.name, url: `/categories/${category.slug}` },
+  ]);
 
   return (
     <main className="py-8 sm:py-12 bg-background min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
+      />
       <Container>
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-6 sm:mb-8">

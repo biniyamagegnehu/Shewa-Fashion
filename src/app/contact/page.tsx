@@ -5,6 +5,7 @@ import { Container } from "@/components/ui/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Button } from "@/components/ui/button";
 import { getStoreSettings } from "@/lib/products";
+import { getCanonicalUrl, buildBreadcrumbJsonLd, safeJsonLd } from "@/lib/seo";
 
 // Allow blocking route for uncached database access with Next.js 16 Cache Components
 export const instant = false;
@@ -13,7 +14,18 @@ export const metadata: Metadata = {
   title: "Contact & Social Media | Shewa Fashion",
   description:
     "Connect with Shewa Fashion in Addis Ababa. Reach our design studio directly through Telegram, WhatsApp, phone, email, and social media channels.",
+  alternates: {
+    canonical: getCanonicalUrl("/contact"),
+  },
   openGraph: {
+    title: "Contact & Social Media | Shewa Fashion",
+    description:
+      "Connect with Shewa Fashion through Telegram, WhatsApp, phone, and our social media channels in Addis Ababa.",
+    url: getCanonicalUrl("/contact"),
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
     title: "Contact & Social Media | Shewa Fashion",
     description:
       "Connect with Shewa Fashion through Telegram, WhatsApp, phone, and our social media channels in Addis Ababa.",
@@ -221,8 +233,17 @@ export default async function ContactPage() {
     settings?.address || settings?.openingHours || settings?.googleMapsUrl
   );
 
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "Home", url: "/" },
+    { name: "Contact & Social", url: "/contact" },
+  ]);
+
   return (
     <main className="py-8 sm:py-12 bg-background min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
+      />
       <Container>
         {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" className="mb-6 sm:mb-8">

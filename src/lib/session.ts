@@ -2,7 +2,7 @@ import 'server-only'
 import crypto from 'crypto'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
-import type { User, Session } from '@prisma/client'
+import type { Session } from '@prisma/client'
 
 // ============================================================
 // Session Configuration & Policies

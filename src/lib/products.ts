@@ -701,6 +701,7 @@ export async function getGalleryItems(): Promise<GalleryItemRecord[]> {
  * Retrieves the store settings singleton record with all public details.
  */
 export async function getStoreSettings(): Promise<StoreSettingsRecord | null> {
+  'use cache'
   try {
     const settings = await prisma.storeSettings.findUnique({
       where: { id: "singleton" },

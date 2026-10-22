@@ -343,7 +343,7 @@ export function parseProductInput(raw: unknown): ParseResult<ProductInput> {
   }
 
   // 2. Slug (optional in raw input; auto-generated from name if omitted)
-  let slug = typeof body.slug === 'string' && body.slug.trim() ? slugify(body.slug) : slugify(name)
+  const slug = typeof body.slug === 'string' && body.slug.trim() ? slugify(body.slug) : slugify(name)
   if (!slug) {
     errors.push({ field: 'slug', message: 'A valid product slug is required.' })
   } else if (slug.length < 2 || slug.length > 150) {
@@ -409,13 +409,14 @@ export function parseProductInput(raw: unknown): ParseResult<ProductInput> {
         } else {
           errors.push({ field: 'imageUrl', message: 'Enter a valid image URL starting with http://, https://, or /' })
         }
-      } else if (typeof img === 'object' && img !== null && typeof (img as any).url === 'string') {
-        const urlStr = ((img as any).url as string).trim()
+      } else if (typeof img === 'object' && img !== null && 'url' in img && typeof (img as { url: unknown }).url === 'string') {
+        const imgObj = img as { url: string; alt?: unknown; sortOrder?: unknown }
+        const urlStr = imgObj.url.trim()
         if (isValidImageUrl(urlStr)) {
           images.push({
             url: urlStr,
-            alt: typeof (img as any).alt === 'string' && (img as any).alt.trim() ? (img as any).alt.trim() : (name || 'Product image'),
-            sortOrder: typeof (img as any).sortOrder === 'number' ? (img as any).sortOrder : idx,
+            alt: typeof imgObj.alt === 'string' && imgObj.alt.trim() ? imgObj.alt.trim() : (name || 'Product image'),
+            sortOrder: typeof imgObj.sortOrder === 'number' ? imgObj.sortOrder : idx,
           })
         } else {
           errors.push({ field: 'imageUrl', message: 'Enter a valid image URL starting with http://, https://, or /' })
@@ -442,8 +443,9 @@ export function parseProductInput(raw: unknown): ParseResult<ProductInput> {
   if (Array.isArray(body.options)) {
     body.options.forEach((opt) => {
       if (typeof opt === 'object' && opt !== null) {
-        const typeStr = ((opt as any).type as string)?.toUpperCase()
-        const valueStr = ((opt as any).value as string)?.trim()
+        const optObj = opt as { type?: unknown; value?: unknown }
+        const typeStr = typeof optObj.type === 'string' ? optObj.type.toUpperCase() : ''
+        const valueStr = typeof optObj.value === 'string' ? optObj.value.trim() : ''
         if (allowedOptionTypes.has(typeStr) && valueStr && valueStr.length <= 50) {
           options.push({ type: typeStr as ProductOptionType, value: valueStr })
         }
@@ -601,7 +603,7 @@ export function parseGalleryItemInput(raw: unknown): ParseResult<GalleryItemInpu
   }
 
   // 3. Alt text (optional; defaults to title)
-  let alt = typeof body.alt === 'string' && body.alt.trim() ? body.alt.trim() : title
+  const alt = typeof body.alt === 'string' && body.alt.trim() ? body.alt.trim() : title
 
   // 4. Description (optional, max 500 chars)
   let description: string | null = null

@@ -1,4 +1,3 @@
-import { NextRequest } from 'next/server'
 import { verifyAdminSession } from '@/lib/auth'
 import { apiSuccess, apiUnauthenticated } from '@/lib/api-response'
 
@@ -7,7 +6,7 @@ import { apiSuccess, apiUnauthenticated } from '@/lib/api-response'
  * Retrieves current authenticated administrator profile.
  * Returns 401 UNAUTHENTICATED if unauthenticated or session invalid.
  */
-export async function GET(_request: NextRequest) {
+export async function GET() {
   const admin = await verifyAdminSession()
 
   if (!admin) {

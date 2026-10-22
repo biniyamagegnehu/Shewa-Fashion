@@ -217,13 +217,13 @@ export function ProductListView({
                     <div className="flex flex-col gap-1 items-start">
                       {product.available ? (
                         <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          Published
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+                          <span>Visible</span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                          Draft / Hidden
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" aria-hidden="true" />
+                          <span>Hidden</span>
                         </span>
                       )}
                       {product.featured && (
@@ -323,11 +323,11 @@ export function ProductListView({
                   <div className="flex flex-wrap items-center gap-1.5 mt-2">
                     {product.available ? (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        Published
+                        Visible
                       </span>
                     ) : (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                        Draft
+                        Hidden
                       </span>
                     )}
 

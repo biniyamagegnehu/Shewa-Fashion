@@ -29,13 +29,27 @@ export function RecentProductsTable({ products }: RecentProductsTableProps) {
             <path strokeLinecap="round" strokeLinejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
           </svg>
         </div>
-        <h3 className="font-serif text-lg font-semibold text-main">No Products in Catalogue</h3>
+        <h2 id="recent-products-heading" className="font-serif text-lg font-semibold text-main">
+          No products yet
+        </h2>
         <p className="text-xs text-secondary max-w-sm mx-auto mt-1.5 leading-relaxed">
-          The product catalogue is currently empty. Run the database seed script to populate sample items, or wait for Phase 12 product management.
+          Your catalogue is empty. Add your first product to start selling.
         </p>
+        <div className="mt-4">
+          <Link
+            href="/admin/products/new"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm font-semibold shadow-xs transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Add First Product
+          </Link>
+        </div>
       </div>
     )
   }
+
 
   return (
     <div className="bg-surface rounded-2xl border border-border shadow-xs overflow-hidden">
@@ -53,23 +67,13 @@ export function RecentProductsTable({ products }: RecentProductsTableProps) {
             href="/admin/products"
             className="text-xs font-semibold text-primary hover:text-primary-hover flex items-center gap-1 transition-colors px-2.5 py-1 rounded-lg bg-primary-light"
           >
-            <span>Manage All</span>
+            <span>View All Products</span>
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
             </svg>
           </Link>
-          <Link
-            href="/shop"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-semibold text-secondary hover:text-main flex items-center gap-1 transition-colors px-2 py-1"
-          >
-            <span>View in Shop</span>
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 19.5 15-15m0 0H8.25m11.25 0v11.25" />
-            </svg>
-          </Link>
         </div>
+
       </div>
 
       {/* ============================================================ */}

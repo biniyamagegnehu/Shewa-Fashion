@@ -626,7 +626,7 @@ export function ProductForm({
              ======================================================== */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-main mb-1.5">
-              Catalogue Status <span className="text-red-500">*</span>
+              Visibility <span className="text-red-500">*</span>
             </label>
 
             {/* Hidden field for Server Action: available="true" | "false" */}
@@ -636,13 +636,13 @@ export function ProductForm({
               value={status === 'published' ? 'true' : 'false'}
             />
 
-            {/* Accessible Segmented Control: Published vs Draft */}
+            {/* Accessible Segmented Control: Visible vs Hidden */}
             <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-background border border-border">
               <button
                 type="button"
                 disabled={isPending}
                 onClick={() => setStatus('published')}
-                className={`py-2 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                className={`py-2.5 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                   status === 'published'
                     ? 'bg-surface text-emerald-800 border border-emerald-300 shadow-2xs font-bold'
                     : 'text-secondary hover:text-main'
@@ -652,15 +652,16 @@ export function ProductForm({
                   className={`w-2 h-2 rounded-full ${
                     status === 'published' ? 'bg-emerald-500' : 'bg-secondary/40'
                   }`}
+                  aria-hidden="true"
                 />
-                <span>Published</span>
+                <span>Visible in catalogue</span>
               </button>
 
               <button
                 type="button"
                 disabled={isPending}
                 onClick={() => setStatus('draft')}
-                className={`py-2 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                className={`py-2.5 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                   status === 'draft'
                     ? 'bg-surface text-amber-800 border border-amber-300 shadow-2xs font-bold'
                     : 'text-secondary hover:text-main'
@@ -670,15 +671,16 @@ export function ProductForm({
                   className={`w-2 h-2 rounded-full ${
                     status === 'draft' ? 'bg-amber-500' : 'bg-secondary/40'
                   }`}
+                  aria-hidden="true"
                 />
-                <span>Draft</span>
+                <span>Hidden from catalogue</span>
               </button>
             </div>
 
             <p className="text-[11px] text-secondary mt-1">
               {status === 'published'
-                ? 'Visible to public shoppers in the store catalogue.'
-                : 'Hidden from public catalogue. Only administrators can view this item.'}
+                ? 'Shoppers can find and view this product on your website.'
+                : 'This product is hidden. Only you can see it in the admin panel.'}
             </p>
           </div>
 

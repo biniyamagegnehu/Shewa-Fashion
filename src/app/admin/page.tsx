@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/auth'
 import { AdminShell } from '@/components/admin/admin-shell'
@@ -116,33 +117,27 @@ export default async function AdminDashboardPage() {
         {/* Welcome Greeting Banner */}
         <div className="bg-surface rounded-2xl border border-border p-6 sm:p-8 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-primary">
-                Executive Portal
-              </span>
-              <span className="text-secondary/40">•</span>
-              <span className="text-xs text-secondary font-medium">
-                {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
-              </span>
-            </div>
+            <p className="text-xs font-semibold text-primary mb-1">
+              {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+            </p>
             <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-main">
-              Welcome back, {admin.name}
+              Welcome back, {admin.name} 👋
             </h1>
             <p className="text-xs sm:text-sm text-secondary mt-1 max-w-2xl leading-relaxed">
-              Here is your store catalogue overview, recent product additions, and active inventory status.
+              Here&apos;s what&apos;s happening in your store today — manage products, update categories, and keep your catalogue fresh.
             </p>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <div className="px-3.5 py-2 rounded-xl bg-background border border-border text-left">
-              <span className="text-[10px] text-secondary uppercase tracking-wider font-semibold block">
-                Session Status
-              </span>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span className="text-xs font-semibold text-main">Active & Verified</span>
-              </div>
-            </div>
+            <Link
+              href="/admin/products/new"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm font-semibold shadow-xs transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+              <span>Add Product</span>
+            </Link>
           </div>
         </div>
 
@@ -166,9 +161,9 @@ export default async function AdminDashboardPage() {
               />
             </svg>
             <div>
-              <p className="font-semibold text-amber-950">Database Statistics Temporarily Unavailable</p>
+              <p className="font-semibold text-amber-950">Could not load store statistics</p>
               <p className="text-amber-800 text-xs mt-0.5">
-                Could not retrieve real-time statistics from PostgreSQL. Please ensure the database server is running and refresh the page.
+                The database could not be reached. Please check your connection and refresh the page.
               </p>
             </div>
           </div>
@@ -195,3 +190,4 @@ export default async function AdminDashboardPage() {
     </AdminShell>
   )
 }
+

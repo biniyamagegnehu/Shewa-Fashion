@@ -163,7 +163,7 @@ export function ProductFilters({ categories, collections }: ProductFiltersProps)
 
         {/* Availability Filter */}
         <div>
-          <label htmlFor="filter-status" className="sr-only">Availability</label>
+          <label htmlFor="filter-status" className="sr-only">Visibility</label>
           <select
             id="filter-status"
             value={currentStatus}
@@ -171,15 +171,15 @@ export function ProductFilters({ categories, collections }: ProductFiltersProps)
             disabled={isPending}
             className="w-full h-9 px-2.5 rounded-lg border border-border bg-background text-main text-xs focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors disabled:opacity-50"
           >
-            <option value="all">All Status</option>
-            <option value="available">Available Only</option>
-            <option value="unavailable">Unavailable Only</option>
+            <option value="all">All Visibility</option>
+            <option value="available">Visible in shop</option>
+            <option value="unavailable">Hidden from shop</option>
           </select>
         </div>
 
         {/* Featured Filter */}
         <div>
-          <label htmlFor="filter-featured" className="sr-only">Featured</label>
+          <label htmlFor="filter-featured" className="sr-only">Featured Status</label>
           <select
             id="filter-featured"
             value={currentFeatured}
@@ -188,11 +188,12 @@ export function ProductFilters({ categories, collections }: ProductFiltersProps)
             className="w-full h-9 px-2.5 rounded-lg border border-border bg-background text-main text-xs focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors disabled:opacity-50"
           >
             <option value="all">All Products</option>
-            <option value="featured">Featured Only</option>
-            <option value="standard">Standard Only</option>
+            <option value="featured">Highlighted first</option>
+            <option value="standard">Not highlighted</option>
           </select>
         </div>
       </div>
     </div>
   )
 }
+

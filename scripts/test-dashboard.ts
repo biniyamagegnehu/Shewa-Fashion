@@ -117,24 +117,35 @@ async function runDashboardTests() {
   assert(settings?.storeName === 'Shewa Fashion', 'Store name matches Shewa Fashion brand identity')
 
   // -------------------------------------------------------------
-  // Test Section 5: Navigation Architecture & Phase Boundaries
+  // Test Section 5: Navigation Architecture
   // -------------------------------------------------------------
-  console.log('\n--- [Section 5: Navigation Structure & Scope Boundaries] ---')
+  console.log('\n--- [Section 5: Navigation Structure] ---')
 
-  const overviewItem = navItems.find((item) => item.name === 'Overview')
-  assert(Boolean(overviewItem && overviewItem.isAvailable && overviewItem.href === '/admin'), 'Overview navigation item is active and links to /admin')
+  const overviewItem = navItems.find((item) => item.href === '/admin')
+  assert(Boolean(overviewItem), 'Overview navigation item exists and links to /admin')
 
-  const productsItem = navItems.find((item) => item.name === 'Products')
-  assert(Boolean(productsItem && productsItem.isAvailable && productsItem.href === '/admin/products'), 'Products navigation is active and links to /admin/products')
+  const productsItem = navItems.find((item) => item.href === '/admin/products')
+  assert(Boolean(productsItem), 'Products navigation item exists and links to /admin/products')
 
-  const categoriesItem = navItems.find((item) => item.name === 'Categories & Collections')
-  assert(Boolean(categoriesItem && !categoriesItem.isAvailable && categoriesItem.phaseBadge === 'Phase 13'), 'Categories navigation is disabled and tagged with Phase 13')
+  const categoriesItem = navItems.find((item) => item.href === '/admin/categories')
+  assert(Boolean(categoriesItem), 'Categories navigation item exists and links to /admin/categories')
 
-  const lookbookItem = navItems.find((item) => item.name === 'Lookbook & Store Settings')
-  assert(Boolean(lookbookItem && !lookbookItem.isAvailable && lookbookItem.phaseBadge === 'Phase 14'), 'Lookbook navigation is disabled and tagged with Phase 14')
+  const collectionsItem = navItems.find((item) => item.href === '/admin/collections')
+  assert(Boolean(collectionsItem), 'Collections navigation item exists and links to /admin/collections')
 
-  const imageItem = navItems.find((item) => item.name === 'Image Infrastructure')
-  assert(Boolean(imageItem && !imageItem.isAvailable && imageItem.phaseBadge === 'Phase 15'), 'Image Infrastructure navigation is disabled and tagged with Phase 15')
+  const galleryItem = navItems.find((item) => item.href === '/admin/gallery')
+  assert(Boolean(galleryItem), 'Gallery navigation item exists and links to /admin/gallery')
+
+  const settingsItem = navItems.find((item) => item.href === '/admin/settings')
+  assert(Boolean(settingsItem), 'Settings navigation item exists and links to /admin/settings')
+
+  // All nav items must have required display fields
+  const allHaveNames = navItems.every((item) => Boolean(item.name))
+  assert(allHaveNames, 'All navigation items have display names')
+
+  const allHaveHrefs = navItems.every((item) => item.href.startsWith('/admin'))
+  assert(allHaveHrefs, 'All navigation items link within /admin')
+
 
   // -------------------------------------------------------------
   // Test Section 6: Route Protection & Redirect Sanitization

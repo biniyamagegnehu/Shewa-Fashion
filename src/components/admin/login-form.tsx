@@ -34,6 +34,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         {/* Error Alert */}
         {state?.error && (
           <div
+            id="login-error-alert"
             role="alert"
             aria-live="polite"
             className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3"
@@ -80,6 +81,8 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
                 autoCapitalize="none"
                 spellCheck="false"
                 disabled={isPending}
+                aria-invalid={Boolean(state?.error)}
+                aria-describedby={state?.error ? 'login-error-alert' : undefined}
                 placeholder="admin@shewafashion.com"
                 className="w-full h-11 px-3.5 rounded-lg border border-border bg-background text-main text-sm transition-colors placeholder:text-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:bg-gray-50"
               />
@@ -102,6 +105,8 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
                 required
                 autoComplete="current-password"
                 disabled={isPending}
+                aria-invalid={Boolean(state?.error)}
+                aria-describedby={state?.error ? 'login-error-alert' : undefined}
                 placeholder="••••••••••••"
                 className="w-full h-11 pl-3.5 pr-11 rounded-lg border border-border bg-background text-main text-sm transition-colors placeholder:text-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:bg-gray-50"
               />

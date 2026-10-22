@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { deleteGalleryItemAction } from '@/app/actions/gallery'
 
@@ -25,16 +25,55 @@ export function GalleryDeleteDialog({
 }: GalleryDeleteDialogProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const modalCardRef = useRef<HTMLDivElement>(null)
+  const previousActiveElementRef = useRef<HTMLElement | null>(null)
 
-  // Close on Escape key
+  // Focus management, Tab trapping, and Escape handling (WCAG 2.2 AA)
   useEffect(() => {
+    if (!isOpen) return
+
+    previousActiveElementRef.current = document.activeElement as HTMLElement | null
+
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape' && isOpen && !isDeleting) {
+      if (e.key === 'Escape' && !isDeleting) {
         onClose()
+        return
+      }
+
+      if (e.key === 'Tab' && modalCardRef.current) {
+        const focusables = modalCardRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+        if (focusables.length === 0) return
+
+        const firstElement = focusables[0]
+        const lastElement = focusables[focusables.length - 1]
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault()
+            lastElement.focus()
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault()
+            firstElement.focus()
+          }
+        }
       }
     }
+
+    const timer = setTimeout(() => {
+      const firstBtn = modalCardRef.current?.querySelector<HTMLElement>('button')
+      firstBtn?.focus()
+    }, 50)
+
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('keydown', handleKeyDown)
+      previousActiveElementRef.current?.focus()
+    }
   }, [isOpen, isDeleting, onClose])
 
   if (!isOpen || !item) return null
@@ -67,6 +106,7 @@ export function GalleryDeleteDialog({
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
     >
       <div
+        ref={modalCardRef}
         className="w-full max-w-md rounded-2xl bg-surface border border-border p-6 shadow-xl space-y-5 animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >

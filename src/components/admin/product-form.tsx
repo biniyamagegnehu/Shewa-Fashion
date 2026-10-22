@@ -254,6 +254,8 @@ export function ProductForm({
               disabled={isPending}
               value={name}
               onChange={(e) => setName(e.target.value)}
+              aria-invalid={Boolean(getFieldError('name'))}
+              aria-describedby={getFieldError('name') ? 'product-name-error' : undefined}
               placeholder="e.g. Shewa Silk Kemis"
               className={`w-full h-11 px-3.5 rounded-xl border bg-background text-main text-sm transition-colors placeholder:text-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
                 getFieldError('name')
@@ -262,7 +264,7 @@ export function ProductForm({
               }`}
             />
             {getFieldError('name') && (
-              <p className="mt-1.5 text-xs text-red-600 font-medium">{getFieldError('name')}</p>
+              <p id="product-name-error" className="mt-1.5 text-xs text-red-600 font-medium">{getFieldError('name')}</p>
             )}
           </div>
 
@@ -287,6 +289,8 @@ export function ProductForm({
                 disabled={isPending}
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
+                aria-invalid={Boolean(getFieldError('price'))}
+                aria-describedby={getFieldError('price') ? 'product-price-error' : undefined}
                 placeholder="3500"
                 className={`w-full h-11 pl-3.5 pr-14 rounded-xl border bg-background text-main text-sm font-semibold transition-colors placeholder:text-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
                   getFieldError('price')
@@ -302,7 +306,7 @@ export function ProductForm({
               Amount in Ethiopian Birr (ETB full Birr integer).
             </p>
             {getFieldError('price') && (
-              <p className="mt-1.5 text-xs text-red-600 font-medium">{getFieldError('price')}</p>
+              <p id="product-price-error" className="mt-1.5 text-xs text-red-600 font-medium">{getFieldError('price')}</p>
             )}
           </div>
 
@@ -450,6 +454,8 @@ export function ProductForm({
               disabled={isPending}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              aria-invalid={Boolean(getFieldError('description'))}
+              aria-describedby={getFieldError('description') ? 'product-desc-error' : undefined}
               placeholder="Describe fabric, embroidery, tailoring, or styling notes (optional)..."
               className={`w-full p-3 rounded-xl border bg-background text-main text-sm transition-colors placeholder:text-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-y ${
                 getFieldError('description')
@@ -458,7 +464,7 @@ export function ProductForm({
               }`}
             />
             {getFieldError('description') && (
-              <p className="mt-1.5 text-xs text-red-600 font-medium">
+              <p id="product-desc-error" className="mt-1.5 text-xs text-red-600 font-medium">
                 {getFieldError('description')}
               </p>
             )}
@@ -588,6 +594,8 @@ export function ProductForm({
                 disabled={isPending}
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
+                aria-invalid={Boolean(getFieldError('categoryId'))}
+                aria-describedby={getFieldError('categoryId') ? 'product-cat-error' : undefined}
                 className={`w-full h-11 px-3 rounded-xl border bg-background text-main text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
                   getFieldError('categoryId')
                     ? 'border-red-500 ring-1 ring-red-500 bg-red-50/20'
@@ -607,7 +615,7 @@ export function ProductForm({
               </div>
             )}
             {getFieldError('categoryId') && (
-              <p className="mt-1.5 text-xs text-red-600 font-medium">
+              <p id="product-cat-error" className="mt-1.5 text-xs text-red-600 font-medium">
                 {getFieldError('categoryId')}
               </p>
             )}

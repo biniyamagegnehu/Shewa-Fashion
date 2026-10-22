@@ -79,6 +79,13 @@ export default async function RootLayout({
       className={`${playfair.variable} ${plusJakarta.variable}`}
     >
       <body className="min-h-screen flex flex-col bg-background text-main antialiased selection:bg-primary-light selection:text-main">
+        {/* WCAG 2.2 AA (Criterion 2.4.1 Bypass Blocks): Skip to Content */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-primary focus:text-white focus:font-semibold focus:text-xs focus:rounded-xl focus:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+        >
+          Skip to main content
+        </a>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: safeJsonLd(storeJsonLd) }}
@@ -88,7 +95,9 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: safeJsonLd(websiteJsonLd) }}
         />
         <AppHeader settings={settings} />
-        <main className="flex-1 w-full">{children}</main>
+        <main id="main-content" tabIndex={-1} className="flex-1 w-full focus:outline-none">
+          {children}
+        </main>
         <AppFooter settings={settings} />
       </body>
     </html>

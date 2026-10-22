@@ -199,13 +199,15 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
             type="text"
             value={storeName}
             onChange={(e) => setStoreName(e.target.value)}
+            aria-invalid={Boolean(getFieldError('storeName'))}
+            aria-describedby={getFieldError('storeName') ? 'store-name-error' : undefined}
             placeholder="Shewa Fashion"
             className={`w-full px-3.5 py-2.5 text-sm rounded-xl border bg-background text-main focus:outline-none focus:ring-2 focus:ring-primary/20 ${
               getFieldError('storeName') ? 'border-red-400 focus:border-red-500' : 'border-border focus:border-primary'
             }`}
           />
           {getFieldError('storeName') && (
-            <p className="text-xs text-red-600 mt-1">{getFieldError('storeName')}</p>
+            <p id="store-name-error" className="text-xs text-red-600 mt-1">{getFieldError('storeName')}</p>
           )}
         </div>
 
@@ -313,13 +315,15 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              aria-invalid={Boolean(getFieldError('email'))}
+              aria-describedby={getFieldError('email') ? 'settings-email-error' : undefined}
               placeholder="hello@shewafashion.com"
               className={`w-full px-3.5 py-2.5 text-sm rounded-xl border bg-background text-main focus:outline-none focus:ring-2 focus:ring-primary/20 ${
                 getFieldError('email') ? 'border-red-400 focus:border-red-500' : 'border-border focus:border-primary'
               }`}
             />
             {getFieldError('email') && (
-              <p className="text-xs text-red-600 mt-1">{getFieldError('email')}</p>
+              <p id="settings-email-error" className="text-xs text-red-600 mt-1">{getFieldError('email')}</p>
             )}
           </div>
 
@@ -333,13 +337,15 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              aria-invalid={Boolean(getFieldError('phone'))}
+              aria-describedby={getFieldError('phone') ? 'settings-phone-error' : undefined}
               placeholder="+251 91 123 4567"
               className={`w-full px-3.5 py-2.5 text-sm rounded-xl border bg-background text-main focus:outline-none focus:ring-2 focus:ring-primary/20 ${
                 getFieldError('phone') ? 'border-red-400 focus:border-red-500' : 'border-border focus:border-primary'
               }`}
             />
             {getFieldError('phone') && (
-              <p className="text-xs text-red-600 mt-1">{getFieldError('phone')}</p>
+              <p id="settings-phone-error" className="text-xs text-red-600 mt-1">{getFieldError('phone')}</p>
             )}
           </div>
 
@@ -353,13 +359,15 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
               type="tel"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
+              aria-invalid={Boolean(getFieldError('whatsapp'))}
+              aria-describedby={getFieldError('whatsapp') ? 'settings-whatsapp-error' : undefined}
               placeholder="+251 91 123 4567"
               className={`w-full px-3.5 py-2.5 text-sm rounded-xl border bg-background text-main focus:outline-none focus:ring-2 focus:ring-primary/20 ${
                 getFieldError('whatsapp') ? 'border-red-400 focus:border-red-500' : 'border-border focus:border-primary'
               }`}
             />
             {getFieldError('whatsapp') && (
-              <p className="text-xs text-red-600 mt-1">{getFieldError('whatsapp')}</p>
+              <p id="settings-whatsapp-error" className="text-xs text-red-600 mt-1">{getFieldError('whatsapp')}</p>
             )}
           </div>
 

@@ -62,6 +62,8 @@ export function CategoryForm({
           disabled={isPending}
           value={name}
           onChange={(e) => setName(e.target.value)}
+          aria-invalid={Boolean(getFieldError('name'))}
+          aria-describedby={getFieldError('name') ? 'category-name-error' : undefined}
           placeholder="e.g. Women, Men, Kids, Accessories…"
           className={`w-full h-11 px-3.5 rounded-xl border bg-background text-main text-sm placeholder:text-secondary/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
             getFieldError('name')
@@ -70,7 +72,7 @@ export function CategoryForm({
           }`}
         />
         {getFieldError('name') && (
-          <p className="mt-1.5 text-xs text-red-600 font-medium">{getFieldError('name')}</p>
+          <p id="category-name-error" className="mt-1.5 text-xs text-red-600 font-medium">{getFieldError('name')}</p>
         )}
       </div>
 
@@ -90,6 +92,8 @@ export function CategoryForm({
           disabled={isPending}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          aria-invalid={Boolean(getFieldError('description'))}
+          aria-describedby={getFieldError('description') ? 'category-description-error' : undefined}
           placeholder="Brief description shown on the public categories page…"
           className={`w-full px-3.5 py-2.5 rounded-xl border bg-background text-main text-sm placeholder:text-secondary/50 resize-none transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
             getFieldError('description')
@@ -99,7 +103,7 @@ export function CategoryForm({
         />
         <div className="flex items-center justify-between mt-1">
           {getFieldError('description') ? (
-            <p className="text-xs text-red-600 font-medium">{getFieldError('description')}</p>
+            <p id="category-description-error" className="text-xs text-red-600 font-medium">{getFieldError('description')}</p>
           ) : (
             <span />
           )}

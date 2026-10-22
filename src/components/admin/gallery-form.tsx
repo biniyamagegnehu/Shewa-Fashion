@@ -273,13 +273,15 @@ export function GalleryForm({ initialData, isEdit = false }: GalleryFormProps) {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            aria-invalid={Boolean(getFieldError('title'))}
+            aria-describedby={getFieldError('title') ? 'gallery-title-error' : undefined}
             placeholder="e.g. Habesha Modern Tailoring — Piazza Studio"
             className={`w-full px-3.5 py-2.5 text-sm rounded-xl border bg-background text-main focus:outline-none focus:ring-2 focus:ring-primary/20 ${
               getFieldError('title') ? 'border-red-400 focus:border-red-500' : 'border-border focus:border-primary'
             }`}
           />
           {getFieldError('title') && (
-            <p className="text-xs text-red-600 mt-1">{getFieldError('title')}</p>
+            <p id="gallery-title-error" className="text-xs text-red-600 mt-1">{getFieldError('title')}</p>
           )}
         </div>
 
@@ -313,11 +315,13 @@ export function GalleryForm({ initialData, isEdit = false }: GalleryFormProps) {
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            aria-invalid={Boolean(getFieldError('description'))}
+            aria-describedby={getFieldError('description') ? 'gallery-desc-error' : undefined}
             placeholder="Optional context about the fabric, weaving technique, or location."
             className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-border bg-background text-main focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-y"
           />
           {getFieldError('description') && (
-            <p className="text-xs text-red-600 mt-1">{getFieldError('description')}</p>
+            <p id="gallery-desc-error" className="text-xs text-red-600 mt-1">{getFieldError('description')}</p>
           )}
         </div>
 

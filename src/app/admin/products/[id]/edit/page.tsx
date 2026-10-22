@@ -52,7 +52,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     select: { id: true, name: true, slug: true },
   })
 
-  // 5. Format initial form data for the simplified 7-field form
+  // 5. Format initial form data
   const initialData: InitialProductData = {
     id: product.id,
     name: product.name,
@@ -60,7 +60,11 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
     description: product.description,
     categoryId: product.categoryId,
     available: product.available,
-    imageUrl: product.images[0]?.url || '',
+    images: product.images.map((img) => ({
+      id: img.id,
+      url: img.url,
+      alt: img.alt,
+    })),
     sizes: product.options
       .filter((o) => o.type === 'SIZE' || o.type === 'SHOE_SIZE' || o.type === 'ONE_SIZE')
       .map((o) => o.value),

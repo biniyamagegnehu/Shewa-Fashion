@@ -173,7 +173,7 @@ export function GalleryForm({ initialData, isEdit = false }: GalleryFormProps) {
 
         {previewUrl ? (
           <div className="space-y-3">
-            <div className="relative aspect-4/3 sm:aspect-16/10 w-full rounded-xl overflow-hidden bg-background border border-border">
+            <div className="relative aspect-4/3 sm:aspect-16/10 w-full rounded-xl overflow-hidden bg-background border border-border group">
               <Image
                 src={previewUrl}
                 alt={title || 'Gallery image preview'}
@@ -182,6 +182,17 @@ export function GalleryForm({ initialData, isEdit = false }: GalleryFormProps) {
                 sizes="(max-width: 768px) 100vw, 600px"
                 className="object-cover"
               />
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                aria-label="Remove image"
+                title="Remove image"
+                className="absolute top-2.5 right-2.5 z-20 w-7 h-7 rounded-full bg-black/60 hover:bg-red-600 text-white flex items-center justify-center shadow-md transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-red-400"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="text-secondary truncate max-w-[260px]">

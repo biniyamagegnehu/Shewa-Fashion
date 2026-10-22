@@ -141,6 +141,7 @@ export function GalleryForm({ initialData, isEdit = false }: GalleryFormProps) {
                 src={previewUrl}
                 alt={title || 'Gallery image preview'}
                 fill
+                unoptimized
                 sizes="(max-width: 768px) 100vw, 600px"
                 className="object-cover"
               />

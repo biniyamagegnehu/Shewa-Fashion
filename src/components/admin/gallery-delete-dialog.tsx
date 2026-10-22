@@ -52,7 +52,7 @@ export function GalleryDeleteDialog({
       } else {
         setError(res.error || 'Failed to delete gallery item.')
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred while deleting.')
     } finally {
       setIsDeleting(false)

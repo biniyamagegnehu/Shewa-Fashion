@@ -1,13 +1,9 @@
 'use server'
 
-import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { verifyAdminSession } from '@/lib/auth'
-import {
-  parseGalleryItemInput,
-  type GalleryItemInput,
-} from '@/lib/validation'
+import { parseGalleryItemInput } from '@/lib/validation'
 import {
   validateImageBuffer,
   isStorageConfigured,
@@ -75,7 +71,7 @@ export async function createGalleryItemAction(
         }
       }
 
-      const uploadRes = await uploadGalleryImage(buffer, file.name)
+      const uploadRes = await uploadGalleryImage(buffer)
       if (!uploadRes.ok || !uploadRes.url) {
         return { error: uploadRes.error || 'Failed to upload image file to storage.' }
       }
@@ -182,7 +178,7 @@ export async function updateGalleryItemAction(
         }
       }
 
-      const uploadRes = await uploadGalleryImage(buffer, file.name)
+      const uploadRes = await uploadGalleryImage(buffer)
       if (!uploadRes.ok || !uploadRes.url) {
         return { error: uploadRes.error || 'Failed to upload replacement image file.' }
       }

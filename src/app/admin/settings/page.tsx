@@ -42,11 +42,11 @@ export default async function AdminSettingsPage() {
             Store Settings
           </h1>
           <p className="text-xs sm:text-sm text-secondary mt-1">
-            Manage your store&apos;s public identity, customer contact details, and social channels. Changes update across the website.
+            Manage your store&apos;s public identity, customer contact details, social channels, and administrator security.
           </p>
         </div>
 
-        <SettingsForm initialSettings={settings} />
+        <SettingsForm initialSettings={settings} admin={admin} />
       </div>
     </AdminShell>
   )

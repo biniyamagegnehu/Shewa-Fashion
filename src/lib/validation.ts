@@ -876,7 +876,7 @@ export function parseStoreSettingsInput(raw: unknown): ParseResult<StoreSettings
   function sanitizeSocialHandle(val: unknown, fieldName: string): string | null {
     if (typeof val !== 'string' || !val.trim()) return null
     const str = val.trim()
-    if (str.startsWith('http://') || str.startsWith('https://')) {
+    if (str.includes(':') || str.startsWith('//')) {
       if (!isSafeUrl(str)) {
         errors.push({ field: fieldName, message: `${fieldName} URL must use HTTPS.` })
         return null
@@ -927,6 +927,297 @@ export function parseStoreSettingsInput(raw: unknown): ParseResult<StoreSettings
       tiktok,
       telegram,
       googleMapsUrl,
+    },
+  }
+}
+
+// ============================================================
+// Sectional Store Settings Inputs & Parsers
+// ============================================================
+
+export interface StoreInfoInput {
+  storeName: string
+  description: string | null
+  logoUrl?: string | null
+}
+
+export function parseStoreInfoInput(raw: unknown): ParseResult<StoreInfoInput> {
+  if (raw === null || typeof raw !== 'object') {
+    return { ok: false, errors: [{ field: '_form', message: 'Invalid store information payload.' }] }
+  }
+
+  const body = raw as Record<string, unknown>
+  const errors: ValidationDetail[] = []
+
+  // Store Name (required, 2 - 80 chars)
+  const nameResult = requireString(body.storeName, 'storeName', 'Store name')
+  let storeName = 'Shewa Fashion'
+  if (typeof nameResult !== 'string') {
+    errors.push(nameResult)
+  } else if (nameResult.length < 2) {
+    errors.push({ field: 'storeName', message: 'Store name must be at least 2 characters.' })
+  } else if (nameResult.length > 80) {
+    errors.push({ field: 'storeName', message: 'Store name cannot exceed 80 characters.' })
+  } else {
+    storeName = nameResult
+  }
+
+  // Description (optional, max 500 chars)
+  let description: string | null = null
+  if (typeof body.description === 'string' && body.description.trim()) {
+    const desc = body.description.trim()
+    if (desc.length > 500) {
+      errors.push({ field: 'description', message: 'Description cannot exceed 500 characters.' })
+    } else {
+      description = desc
+    }
+  }
+
+  // Logo URL (optional string URL)
+  let logoUrl: string | null = null
+  if (typeof body.logoUrl === 'string' && body.logoUrl.trim()) {
+    const trimmed = body.logoUrl.trim()
+    if (!isValidImageUrl(trimmed)) {
+      errors.push({ field: 'logoUrl', message: 'Logo URL must be a valid HTTP or HTTPS link.' })
+    } else {
+      logoUrl = trimmed
+    }
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors }
+  }
+
+  return {
+    ok: true,
+    data: {
+      storeName,
+      description,
+      logoUrl,
+    },
+  }
+}
+
+export interface ContactInfoInput {
+  phone: string | null
+  email: string | null
+  whatsapp: string | null
+  address: string | null
+  openingHours: string | null
+  googleMapsUrl: string | null
+}
+
+export function parseContactInfoInput(raw: unknown): ParseResult<ContactInfoInput> {
+  if (raw === null || typeof raw !== 'object') {
+    return { ok: false, errors: [{ field: '_form', message: 'Invalid contact information payload.' }] }
+  }
+
+  const body = raw as Record<string, unknown>
+  const errors: ValidationDetail[] = []
+
+  // Email (optional, validated format)
+  let email: string | null = null
+  const emailRes = validateEmailOptional(body.email, 'email')
+  if (emailRes && typeof emailRes !== 'string') {
+    errors.push(emailRes)
+  } else {
+    email = emailRes
+  }
+
+  // Phone & WhatsApp (optional, validated format)
+  let phone: string | null = null
+  const phoneRes = validatePhoneOptional(body.phone, 'phone')
+  if (phoneRes && typeof phoneRes !== 'string') {
+    errors.push(phoneRes)
+  } else {
+    phone = phoneRes
+  }
+
+  let whatsapp: string | null = null
+  const whatsappRes = validatePhoneOptional(body.whatsapp, 'whatsapp')
+  if (whatsappRes && typeof whatsappRes !== 'string') {
+    errors.push(whatsappRes)
+  } else {
+    whatsapp = whatsappRes
+  }
+
+  // Address & Opening Hours (optional, max 200 chars)
+  let address: string | null = null
+  if (typeof body.address === 'string' && body.address.trim()) {
+    const addr = body.address.trim()
+    if (addr.length > 200) {
+      errors.push({ field: 'address', message: 'Address cannot exceed 200 characters.' })
+    } else {
+      address = addr
+    }
+  }
+
+  let openingHours: string | null = null
+  if (typeof body.openingHours === 'string' && body.openingHours.trim()) {
+    const hours = body.openingHours.trim()
+    if (hours.length > 200) {
+      errors.push({ field: 'openingHours', message: 'Opening hours cannot exceed 200 characters.' })
+    } else {
+      openingHours = hours
+    }
+  }
+
+  // Google Maps URL (must be safe URL if provided)
+  let googleMapsUrl: string | null = null
+  if (typeof body.googleMapsUrl === 'string' && body.googleMapsUrl.trim()) {
+    const mapsRes = validateSafeUrl(body.googleMapsUrl, 'googleMapsUrl', 'Google Maps link')
+    if (mapsRes && typeof mapsRes !== 'string') {
+      errors.push(mapsRes)
+    } else {
+      googleMapsUrl = mapsRes
+    }
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors }
+  }
+
+  return {
+    ok: true,
+    data: {
+      phone,
+      email,
+      whatsapp,
+      address,
+      openingHours,
+      googleMapsUrl,
+    },
+  }
+}
+
+export interface SocialLinksInput {
+  instagram: string | null
+  facebook: string | null
+  tiktok: string | null
+  telegram: string | null
+}
+
+export function parseSocialLinksInput(raw: unknown): ParseResult<SocialLinksInput> {
+  if (raw === null || typeof raw !== 'object') {
+    return { ok: false, errors: [{ field: '_form', message: 'Invalid social links payload.' }] }
+  }
+
+  const body = raw as Record<string, unknown>
+  const errors: ValidationDetail[] = []
+
+  function sanitizeHandle(val: unknown, fieldName: string): string | null {
+    if (typeof val !== 'string' || !val.trim()) return null
+    const str = val.trim()
+    if (str.includes(':') || str.startsWith('//')) {
+      if (!isSafeUrl(str)) {
+        errors.push({ field: fieldName, message: `${fieldName} URL must use HTTPS.` })
+        return null
+      }
+      return str
+    }
+    if (str.length > 100) {
+      errors.push({ field: fieldName, message: `${fieldName} handle is too long.` })
+      return null
+    }
+    return str
+  }
+
+  const instagram = sanitizeHandle(body.instagram, 'instagram')
+  const facebook = sanitizeHandle(body.facebook, 'facebook')
+  const tiktok = sanitizeHandle(body.tiktok, 'tiktok')
+  const telegram = sanitizeHandle(body.telegram, 'telegram')
+
+  if (errors.length > 0) {
+    return { ok: false, errors }
+  }
+
+  return {
+    ok: true,
+    data: {
+      instagram,
+      facebook,
+      tiktok,
+      telegram,
+    },
+  }
+}
+
+// ============================================================
+// Change Password Input & Parser
+// ============================================================
+
+export interface ChangePasswordInput {
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
+}
+
+/**
+ * Validate administrator password change request.
+ * Enforces:
+ * - Current password is provided (not empty)
+ * - New password is at least 12 characters long (no arbitrary composition rules)
+ * - New password does not exceed 128 characters
+ * - New password confirmation strictly matches
+ * - New password is not identical to current password
+ * - Preserves password characters without unexpected trimming
+ */
+export function parseChangePasswordInput(raw: unknown): ParseResult<ChangePasswordInput> {
+  if (raw === null || typeof raw !== 'object') {
+    return { ok: false, errors: [{ field: '_form', message: 'Invalid password change payload.' }] }
+  }
+
+  const body = raw as Record<string, unknown>
+  const errors: ValidationDetail[] = []
+
+  const currentPassword = typeof body.currentPassword === 'string' ? body.currentPassword : ''
+  const newPassword = typeof body.newPassword === 'string' ? body.newPassword : ''
+  const confirmPassword = typeof body.confirmPassword === 'string' ? body.confirmPassword : ''
+
+  if (!currentPassword) {
+    errors.push({ field: 'currentPassword', message: 'Current password is required.' })
+  }
+
+  if (!newPassword) {
+    errors.push({ field: 'newPassword', message: 'New password is required.' })
+  } else if (newPassword.length < 12) {
+    errors.push({
+      field: 'newPassword',
+      message: 'New password must be at least 12 characters long.',
+    })
+  } else if (newPassword.length > 128) {
+    errors.push({
+      field: 'newPassword',
+      message: 'New password cannot exceed 128 characters.',
+    })
+  }
+
+  if (!confirmPassword) {
+    errors.push({ field: 'confirmPassword', message: 'Please confirm your new password.' })
+  } else if (newPassword && confirmPassword !== newPassword) {
+    errors.push({
+      field: 'confirmPassword',
+      message: 'New password and confirmation do not match.',
+    })
+  }
+
+  if (currentPassword && newPassword && currentPassword === newPassword) {
+    errors.push({
+      field: 'newPassword',
+      message: 'New password cannot be identical to your current password.',
+    })
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors }
+  }
+
+  return {
+    ok: true,
+    data: {
+      currentPassword,
+      newPassword,
+      confirmPassword,
     },
   }
 }

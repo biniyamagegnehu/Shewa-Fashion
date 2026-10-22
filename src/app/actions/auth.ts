@@ -100,3 +100,4 @@ export async function logoutAction(): Promise<void> {
   await deleteAdminSession()
   redirect('/admin/login')
 }
+

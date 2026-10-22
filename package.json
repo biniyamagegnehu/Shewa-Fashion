@@ -20,6 +20,7 @@
     "test:simplified-products": "tsx -r ./scripts/stub-server-only.cjs scripts/test-simplified-products.ts",
     "test:categories": "tsx -r ./scripts/stub-server-only.cjs scripts/test-categories.ts",
     "test:gallery-settings": "tsx -r ./scripts/stub-server-only.cjs scripts/test-gallery-settings.ts",
+    "test:settings-security": "tsx -r ./scripts/stub-server-only.cjs scripts/test-settings-security.ts",
     "test:image-upload": "tsx -r ./scripts/stub-server-only.cjs scripts/test-image-upload.ts",
     "test:validation": "tsx scripts/test-validation-errors.ts",
     "test:security": "tsx -r ./scripts/stub-server-only.cjs scripts/test-security-accessibility.ts",

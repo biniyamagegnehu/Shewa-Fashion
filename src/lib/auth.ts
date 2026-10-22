@@ -218,6 +218,100 @@ export function resetLoginRateLimit(ip: string): void {
 }
 
 // ============================================================
+// Password Change Rate Limiter
+// ============================================================
+// Enforces brute-force defense against current password guessing.
+// Policy: 5 attempts per 15 minutes, with a 15-minute lockout.
+// ============================================================
+
+const passwordChangeRateLimitMap = new Map<string, RateLimitRecord>()
+
+export const MAX_PASSWORD_CHANGE_ATTEMPTS = 5
+export const PASSWORD_CHANGE_LOCKOUT_MS = 15 * 60 * 1000 // 15 minutes
+export const PASSWORD_CHANGE_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
+
+/**
+ * Check if the given identifier (IP / userId) is rate-limited for password changes.
+ */
+export function checkPasswordChangeRateLimit(key: string): {
+  allowed: boolean
+  remainingAttempts: number
+  retryAfterSeconds: number
+} {
+  const now = Date.now()
+  const record = passwordChangeRateLimitMap.get(key)
+
+  if (!record) {
+    return {
+      allowed: true,
+      remainingAttempts: MAX_PASSWORD_CHANGE_ATTEMPTS,
+      retryAfterSeconds: 0,
+    }
+  }
+
+  // If locked out
+  if (record.lockedUntil && record.lockedUntil > now) {
+    const retryAfterSeconds = Math.ceil((record.lockedUntil - now) / 1000)
+    return {
+      allowed: false,
+      remainingAttempts: 0,
+      retryAfterSeconds,
+    }
+  }
+
+  // If window expired, reset
+  if (now - record.firstAttemptAt > PASSWORD_CHANGE_WINDOW_MS) {
+    passwordChangeRateLimitMap.delete(key)
+    return {
+      allowed: true,
+      remainingAttempts: MAX_PASSWORD_CHANGE_ATTEMPTS,
+      retryAfterSeconds: 0,
+    }
+  }
+
+  const remainingAttempts = Math.max(0, MAX_PASSWORD_CHANGE_ATTEMPTS - record.attempts)
+  return {
+    allowed: remainingAttempts > 0,
+    remainingAttempts,
+    retryAfterSeconds: 0,
+  }
+}
+
+/**
+ * Record a failed password change attempt.
+ */
+export function recordFailedPasswordChangeAttempt(key: string): void {
+  const now = Date.now()
+  const record = passwordChangeRateLimitMap.get(key)
+
+  if (!record || now - record.firstAttemptAt > PASSWORD_CHANGE_WINDOW_MS) {
+    passwordChangeRateLimitMap.set(key, {
+      attempts: 1,
+      firstAttemptAt: now,
+      lockedUntil: null,
+    })
+    return
+  }
+
+  const newAttempts = record.attempts + 1
+  const lockedUntil =
+    newAttempts >= MAX_PASSWORD_CHANGE_ATTEMPTS ? now + PASSWORD_CHANGE_LOCKOUT_MS : null
+
+  passwordChangeRateLimitMap.set(key, {
+    attempts: newAttempts,
+    firstAttemptAt: record.firstAttemptAt,
+    lockedUntil,
+  })
+}
+
+/**
+ * Reset failed password change attempts upon success.
+ */
+export function resetPasswordChangeRateLimit(key: string): void {
+  passwordChangeRateLimitMap.delete(key)
+}
+
+// ============================================================
 // Server-Side Admin Session & Authorization Helpers
 // ============================================================
 

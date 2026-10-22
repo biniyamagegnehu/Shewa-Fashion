@@ -170,7 +170,17 @@ export function slugify(text: string): string {
 export function isValidImageUrl(url: string): boolean {
   if (!url || typeof url !== 'string') return false
   const trimmed = url.trim()
-  if (trimmed.length > 2000) return false
+  if (trimmed.length === 0 || trimmed.length > 2000) return false
+
+  if (
+    trimmed === '/' ||
+    trimmed === '#' ||
+    trimmed.startsWith('javascript:') ||
+    trimmed.startsWith('data:') ||
+    trimmed.startsWith('file:')
+  ) {
+    return false
+  }
 
   try {
     const parsed = new URL(trimmed, 'https://shewafashion.com')
@@ -561,6 +571,98 @@ export function validatePhoneOptional(raw: unknown, field: string = 'phone'): st
 }
 
 // ============================================================
+// Category & Collection Validation (Phase 16)
+// ============================================================
+
+export interface CategoryInput {
+  name: string
+  description: string | null
+}
+
+export function parseCategoryInput(raw: unknown): ParseResult<CategoryInput> {
+  if (raw === null || typeof raw !== 'object') {
+    return { ok: false, errors: [{ field: '_form', message: 'Invalid category payload.' }] }
+  }
+
+  const body = raw as Record<string, unknown>
+  const errors: ValidationDetail[] = []
+
+  // 1. Name: required, 2 - 80 chars
+  const nameResult = requireString(body.name, 'name', 'Category name')
+  let name = ''
+  if (typeof nameResult !== 'string') {
+    errors.push(nameResult)
+  } else if (nameResult.length < 2) {
+    errors.push({ field: 'name', message: 'Category name must be at least 2 characters.' })
+  } else if (nameResult.length > 80) {
+    errors.push({ field: 'name', message: 'Category name cannot exceed 80 characters.' })
+  } else {
+    name = nameResult
+  }
+
+  // 2. Description: optional, max 500 chars
+  let description: string | null = null
+  if (body.description !== undefined && body.description !== null && typeof body.description === 'string') {
+    const desc = body.description.trim()
+    if (desc.length > 500) {
+      errors.push({ field: 'description', message: 'Description cannot exceed 500 characters.' })
+    } else if (desc.length > 0) {
+      description = desc
+    }
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors }
+  }
+
+  return { ok: true, data: { name, description } }
+}
+
+export interface CollectionInput {
+  name: string
+  description: string | null
+}
+
+export function parseCollectionInput(raw: unknown): ParseResult<CollectionInput> {
+  if (raw === null || typeof raw !== 'object') {
+    return { ok: false, errors: [{ field: '_form', message: 'Invalid collection payload.' }] }
+  }
+
+  const body = raw as Record<string, unknown>
+  const errors: ValidationDetail[] = []
+
+  // 1. Name: required, 2 - 80 chars
+  const nameResult = requireString(body.name, 'name', 'Collection name')
+  let name = ''
+  if (typeof nameResult !== 'string') {
+    errors.push(nameResult)
+  } else if (nameResult.length < 2) {
+    errors.push({ field: 'name', message: 'Collection name must be at least 2 characters.' })
+  } else if (nameResult.length > 80) {
+    errors.push({ field: 'name', message: 'Collection name cannot exceed 80 characters.' })
+  } else {
+    name = nameResult
+  }
+
+  // 2. Description: optional, max 500 chars
+  let description: string | null = null
+  if (body.description !== undefined && body.description !== null && typeof body.description === 'string') {
+    const desc = body.description.trim()
+    if (desc.length > 500) {
+      errors.push({ field: 'description', message: 'Description cannot exceed 500 characters.' })
+    } else if (desc.length > 0) {
+      description = desc
+    }
+  }
+
+  if (errors.length > 0) {
+    return { ok: false, errors }
+  }
+
+  return { ok: true, data: { name, description } }
+}
+
+// ============================================================
 // Gallery Item Validation
 // ============================================================
 
@@ -597,7 +699,12 @@ export function parseGalleryItemInput(raw: unknown): ParseResult<GalleryItemInpu
   // 2. Image URL (required if file not uploaded directly)
   let imageUrl = ''
   if (typeof body.imageUrl === 'string' && body.imageUrl.trim()) {
-    imageUrl = body.imageUrl.trim()
+    const trimmed = body.imageUrl.trim()
+    if (!isValidImageUrl(trimmed)) {
+      errors.push({ field: 'imageUrl', message: 'Image URL must be a valid HTTP or HTTPS link.' })
+    } else {
+      imageUrl = trimmed
+    }
   } else if (body.imageUrl !== undefined && body.imageUrl !== null && body.imageUrl !== '') {
     errors.push({ field: 'imageUrl', message: 'Invalid image URL.' })
   }
@@ -710,7 +817,12 @@ export function parseStoreSettingsInput(raw: unknown): ParseResult<StoreSettings
   // 3. Logo URL (optional string URL)
   let logoUrl: string | null = null
   if (typeof body.logoUrl === 'string' && body.logoUrl.trim()) {
-    logoUrl = body.logoUrl.trim()
+    const trimmed = body.logoUrl.trim()
+    if (!isValidImageUrl(trimmed)) {
+      errors.push({ field: 'logoUrl', message: 'Logo URL must be a valid HTTP or HTTPS link.' })
+    } else {
+      logoUrl = trimmed
+    }
   }
 
   // 4. Email (optional, validated format)

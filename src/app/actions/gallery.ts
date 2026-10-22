@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { verifyAdminSession } from '@/lib/auth'
 import { parseGalleryItemInput } from '@/lib/validation'
+import { handlePrismaError } from '@/lib/errors'
 import {
   validateImageBuffer,
   isStorageConfigured,
@@ -107,7 +108,16 @@ export async function createGalleryItemAction(
     return { success: true, itemId: created.id }
   } catch (err) {
     console.error('Failed to create gallery item:', err)
-    return { error: 'Failed to create gallery item. Please try again.' }
+    if (finalImageUrl && finalImageUrl !== parsed.data.imageUrl) {
+      await deleteStoredImage(finalImageUrl).catch((cleanupErr) => {
+        console.warn('Failed to clean up uploaded gallery image after DB failure:', cleanupErr)
+      })
+    }
+    const errRes = handlePrismaError(err, 'Failed to create gallery item. Please try again.')
+    if (errRes.field) {
+      return { errors: [{ field: errRes.field, message: errRes.message }] }
+    }
+    return { error: errRes.message }
   }
 }
 
@@ -209,7 +219,9 @@ export async function updateGalleryItemAction(
     if (newImageUploaded && existing.imageUrl && existing.imageUrl !== finalImageUrl) {
       const shared = await isImageShared(existing.imageUrl, existing.id)
       if (!shared) {
-        await deleteStoredImage(existing.imageUrl).catch(() => {})
+        await deleteStoredImage(existing.imageUrl).catch((warnErr) => {
+          console.warn('Could not clean up obsolete gallery image from storage:', warnErr)
+        })
       }
     }
 
@@ -221,7 +233,16 @@ export async function updateGalleryItemAction(
     return { success: true, itemId: existing.id }
   } catch (err) {
     console.error('Failed to update gallery item:', err)
-    return { error: 'Failed to update gallery item. Please try again.' }
+    if (newImageUploaded && finalImageUrl && finalImageUrl !== existing.imageUrl && finalImageUrl !== parsed.data.imageUrl) {
+      await deleteStoredImage(finalImageUrl).catch((cleanupErr) => {
+        console.warn('Failed to clean up newly uploaded gallery image after DB failure:', cleanupErr)
+      })
+    }
+    const errRes = handlePrismaError(err, 'Failed to update gallery item. Please try again.')
+    if (errRes.field) {
+      return { errors: [{ field: errRes.field, message: errRes.message }] }
+    }
+    return { error: errRes.message }
   }
 }
 
@@ -275,6 +296,7 @@ export async function deleteGalleryItemAction(
     return { success: true }
   } catch (err) {
     console.error('Failed to delete gallery item:', err)
-    return { success: false, error: 'Failed to delete gallery item. Please try again.' }
+    const errRes = handlePrismaError(err, 'Failed to delete gallery item. Please try again.')
+    return { success: false, error: errRes.message }
   }
 }

@@ -17,6 +17,7 @@ import {
   isStorageConfigured,
   isImageShared,
 } from '@/lib/storage'
+import { handlePrismaError } from '@/lib/errors'
 import type { ValidationDetail } from '@/lib/api-response'
 
 export interface ProductActionState {
@@ -191,7 +192,11 @@ export async function createProductAction(
     if (uploadedKey) {
       await deleteProductImage(uploadedKey).catch((e) => console.error('Failed to compensate uploaded image:', e))
     }
-    return { error: 'An unexpected database error occurred while creating the product.' }
+    const errRes = handlePrismaError(error, 'An unexpected database error occurred while creating the product.')
+    if (errRes.field) {
+      return { errors: [{ field: errRes.field, message: errRes.message }] }
+    }
+    return { error: errRes.message }
   }
 
   // 8. Redirect to product management list
@@ -446,7 +451,11 @@ export async function updateProductAction(
         console.error('Failed to compensate uploaded image:', e)
       )
     }
-    return { error: 'An unexpected database error occurred while updating the product.' }
+    const errRes = handlePrismaError(error, 'An unexpected database error occurred while updating the product.')
+    if (errRes.field) {
+      return { errors: [{ field: errRes.field, message: errRes.message }] }
+    }
+    return { error: errRes.message }
   }
 
   // 10. Redirect to product management list
@@ -514,7 +523,8 @@ export async function deleteProductAction(
     return { success: true }
   } catch (error) {
     console.error('Failed to delete product from database:', error)
-    return { success: false, error: 'Failed to delete product due to a database constraint.' }
+    const errRes = handlePrismaError(error, 'Failed to delete product due to a database constraint.')
+    return { success: false, error: errRes.message }
   }
 }
 

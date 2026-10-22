@@ -4,43 +4,14 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { verifyAdminSession } from '@/lib/auth'
-import { slugify } from '@/lib/validation'
+import { slugify, parseCategoryInput } from '@/lib/validation'
+import { handlePrismaError } from '@/lib/errors'
 import type { ValidationDetail } from '@/lib/api-response'
 
 export interface CategoryActionState {
   error?: string
   errors?: ValidationDetail[]
   success?: boolean
-}
-
-// ============================================================
-// Validation helpers
-// ============================================================
-
-function validateCategoryName(raw: unknown): string | ValidationDetail {
-  if (typeof raw !== 'string' || raw.trim().length === 0) {
-    return { field: 'name', message: 'Category name is required.' }
-  }
-  const name = raw.trim()
-  if (name.length < 2) {
-    return { field: 'name', message: 'Category name must be at least 2 characters.' }
-  }
-  if (name.length > 80) {
-    return { field: 'name', message: 'Category name cannot exceed 80 characters.' }
-  }
-  return name
-}
-
-function validateCategoryDescription(raw: unknown): string | null | ValidationDetail {
-  if (raw === null || raw === undefined || (typeof raw === 'string' && raw.trim().length === 0)) {
-    return null
-  }
-  if (typeof raw !== 'string') return null
-  const desc = raw.trim()
-  if (desc.length > 500) {
-    return { field: 'description', message: 'Description cannot exceed 500 characters.' }
-  }
-  return desc || null
 }
 
 // ============================================================
@@ -57,21 +28,19 @@ export async function createCategoryAction(
     return { error: 'Unauthorized. Administrator access required.' }
   }
 
-  // 2. Validate Name
-  const nameResult = validateCategoryName(formData.get('name'))
-  if (typeof nameResult !== 'string') {
-    return { errors: [nameResult] }
-  }
-  const name = nameResult
+  // 2. Validate input using centralized validation
+  const parsed = parseCategoryInput({
+    name: formData.get('name'),
+    description: formData.get('description'),
+  })
 
-  // 3. Validate Description (optional)
-  const descResult = validateCategoryDescription(formData.get('description'))
-  if (descResult !== null && typeof descResult !== 'string') {
-    return { errors: [descResult] }
+  if (!parsed.ok) {
+    return { errors: parsed.errors }
   }
-  const description = descResult
 
-  // 4. Generate unique slug from name
+  const { name, description } = parsed.data
+
+  // 3. Generate unique slug from name
   const baseSlug = slugify(name) || 'category'
   let slug = baseSlug
   let counter = 1
@@ -82,7 +51,7 @@ export async function createCategoryAction(
     slug = `${baseSlug}-${counter}`
   }
 
-  // 5. Persist
+  // 4. Persist
   try {
     await prisma.category.create({
       data: { name, slug, description },
@@ -94,11 +63,11 @@ export async function createCategoryAction(
     revalidatePath('/shop')
   } catch (error) {
     console.error('Failed to create category:', error)
-    const msg = String(error)
-    if (msg.includes('Unique constraint') || msg.includes('unique constraint')) {
-      return { errors: [{ field: 'name', message: 'A category with a similar name already exists. Please use a different name.' }] }
+    const errRes = handlePrismaError(error, 'An unexpected error occurred while creating the category.')
+    if (errRes.field) {
+      return { errors: [{ field: errRes.field, message: errRes.message }] }
     }
-    return { error: 'An unexpected error occurred while creating the category.' }
+    return { error: errRes.message }
   }
 
   redirect('/admin/categories')
@@ -129,24 +98,22 @@ export async function updateCategoryAction(
     return { error: 'Category not found.' }
   }
 
-  // 3. Validate Name
-  const nameResult = validateCategoryName(formData.get('name'))
-  if (typeof nameResult !== 'string') {
-    return { errors: [nameResult] }
-  }
-  const name = nameResult
+  // 3. Validate input
+  const parsed = parseCategoryInput({
+    name: formData.get('name'),
+    description: formData.get('description'),
+  })
 
-  // 4. Validate Description
-  const descResult = validateCategoryDescription(formData.get('description'))
-  if (descResult !== null && typeof descResult !== 'string') {
-    return { errors: [descResult] }
+  if (!parsed.ok) {
+    return { errors: parsed.errors }
   }
-  const description = descResult
 
-  // 5. Handle isActive toggle
+  const { name, description } = parsed.data
+
+  // 4. Handle isActive toggle
   const isActive = formData.get('isActive') !== 'false'
 
-  // 6. Regenerate slug from new name, keeping existing slug if name is unchanged or conflict-safe
+  // 5. Regenerate slug from new name, keeping existing slug if name is unchanged or conflict-safe
   const newBaseSlug = slugify(name) || 'category'
   let newSlug = newBaseSlug
   let counter = 1
@@ -161,7 +128,7 @@ export async function updateCategoryAction(
     newSlug = `${newBaseSlug}-${counter}`
   }
 
-  // 7. Persist update
+  // 6. Persist update
   try {
     await prisma.category.update({
       where: { id: categoryId },
@@ -176,11 +143,11 @@ export async function updateCategoryAction(
     revalidatePath('/shop')
   } catch (error) {
     console.error('Failed to update category:', error)
-    const msg = String(error)
-    if (msg.includes('Unique constraint') || msg.includes('unique constraint')) {
-      return { errors: [{ field: 'name', message: 'A category with a similar name already exists.' }] }
+    const errRes = handlePrismaError(error, 'An unexpected error occurred while updating the category.')
+    if (errRes.field) {
+      return { errors: [{ field: errRes.field, message: errRes.message }] }
     }
-    return { error: 'An unexpected error occurred while updating the category.' }
+    return { error: errRes.message }
   }
 
   redirect('/admin/categories')
@@ -219,10 +186,7 @@ export async function deleteCategoryAction(
       return { success: false, error: 'Category not found or already deleted.' }
     }
 
-    // 3. Safety check — the schema uses onDelete: SetNull so deletion won't orphan products,
-    //    but we warn the user explicitly in the UI. The action proceeds as per schema design.
-    // Products will have their categoryId set to null automatically by PostgreSQL.
-
+    // 3. Safety check — schema uses onDelete: SetNull
     await prisma.category.delete({ where: { id: categoryId } })
 
     revalidatePath('/admin/categories')
@@ -234,6 +198,7 @@ export async function deleteCategoryAction(
     return { success: true }
   } catch (error) {
     console.error('Failed to delete category:', error)
-    return { success: false, error: 'Failed to delete category. Please try again.' }
+    const errRes = handlePrismaError(error, 'Failed to delete category. Please try again.')
+    return { success: false, error: errRes.message }
   }
 }

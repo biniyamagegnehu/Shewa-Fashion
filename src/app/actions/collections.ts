@@ -4,43 +4,14 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { verifyAdminSession } from '@/lib/auth'
-import { slugify } from '@/lib/validation'
+import { slugify, parseCollectionInput } from '@/lib/validation'
+import { handlePrismaError } from '@/lib/errors'
 import type { ValidationDetail } from '@/lib/api-response'
 
 export interface CollectionActionState {
   error?: string
   errors?: ValidationDetail[]
   success?: boolean
-}
-
-// ============================================================
-// Validation helpers
-// ============================================================
-
-function validateCollectionName(raw: unknown): string | ValidationDetail {
-  if (typeof raw !== 'string' || raw.trim().length === 0) {
-    return { field: 'name', message: 'Collection name is required.' }
-  }
-  const name = raw.trim()
-  if (name.length < 2) {
-    return { field: 'name', message: 'Collection name must be at least 2 characters.' }
-  }
-  if (name.length > 80) {
-    return { field: 'name', message: 'Collection name cannot exceed 80 characters.' }
-  }
-  return name
-}
-
-function validateCollectionDescription(raw: unknown): string | null | ValidationDetail {
-  if (raw === null || raw === undefined || (typeof raw === 'string' && raw.trim().length === 0)) {
-    return null
-  }
-  if (typeof raw !== 'string') return null
-  const desc = raw.trim()
-  if (desc.length > 500) {
-    return { field: 'description', message: 'Description cannot exceed 500 characters.' }
-  }
-  return desc || null
 }
 
 // ============================================================
@@ -57,21 +28,19 @@ export async function createCollectionAction(
     return { error: 'Unauthorized. Administrator access required.' }
   }
 
-  // 2. Validate Name
-  const nameResult = validateCollectionName(formData.get('name'))
-  if (typeof nameResult !== 'string') {
-    return { errors: [nameResult] }
-  }
-  const name = nameResult
+  // 2. Validate input using centralized validation
+  const parsed = parseCollectionInput({
+    name: formData.get('name'),
+    description: formData.get('description'),
+  })
 
-  // 3. Validate Description (optional)
-  const descResult = validateCollectionDescription(formData.get('description'))
-  if (descResult !== null && typeof descResult !== 'string') {
-    return { errors: [descResult] }
+  if (!parsed.ok) {
+    return { errors: parsed.errors }
   }
-  const description = descResult
 
-  // 4. Generate unique slug from name
+  const { name, description } = parsed.data
+
+  // 3. Generate unique slug from name
   const baseSlug = slugify(name) || 'collection'
   let slug = baseSlug
   let counter = 1
@@ -82,7 +51,7 @@ export async function createCollectionAction(
     slug = `${baseSlug}-${counter}`
   }
 
-  // 5. Persist
+  // 4. Persist
   try {
     await prisma.collection.create({
       data: { name, slug, description },
@@ -94,11 +63,11 @@ export async function createCollectionAction(
     revalidatePath('/shop')
   } catch (error) {
     console.error('Failed to create collection:', error)
-    const msg = String(error)
-    if (msg.includes('Unique constraint') || msg.includes('unique constraint')) {
-      return { errors: [{ field: 'name', message: 'A collection with a similar name already exists.' }] }
+    const errRes = handlePrismaError(error, 'An unexpected error occurred while creating the collection.')
+    if (errRes.field) {
+      return { errors: [{ field: errRes.field, message: errRes.message }] }
     }
-    return { error: 'An unexpected error occurred while creating the collection.' }
+    return { error: errRes.message }
   }
 
   redirect('/admin/collections')
@@ -132,24 +101,22 @@ export async function updateCollectionAction(
     return { error: 'Collection not found.' }
   }
 
-  // 3. Validate Name
-  const nameResult = validateCollectionName(formData.get('name'))
-  if (typeof nameResult !== 'string') {
-    return { errors: [nameResult] }
-  }
-  const name = nameResult
+  // 3. Validate input
+  const parsed = parseCollectionInput({
+    name: formData.get('name'),
+    description: formData.get('description'),
+  })
 
-  // 4. Validate Description
-  const descResult = validateCollectionDescription(formData.get('description'))
-  if (descResult !== null && typeof descResult !== 'string') {
-    return { errors: [descResult] }
+  if (!parsed.ok) {
+    return { errors: parsed.errors }
   }
-  const description = descResult
 
-  // 5. Handle isActive toggle
+  const { name, description } = parsed.data
+
+  // 4. Handle isActive toggle
   const isActive = formData.get('isActive') !== 'false'
 
-  // 6. Regenerate slug from new name, keeping safe uniqueness
+  // 5. Regenerate slug from new name, keeping safe uniqueness
   const newBaseSlug = slugify(name) || 'collection'
   let newSlug = newBaseSlug
   let counter = 1
@@ -163,7 +130,7 @@ export async function updateCollectionAction(
     newSlug = `${newBaseSlug}-${counter}`
   }
 
-  // 7. Persist update
+  // 6. Persist update
   try {
     await prisma.collection.update({
       where: { id: collectionId },
@@ -178,11 +145,11 @@ export async function updateCollectionAction(
     revalidatePath('/shop')
   } catch (error) {
     console.error('Failed to update collection:', error)
-    const msg = String(error)
-    if (msg.includes('Unique constraint') || msg.includes('unique constraint')) {
-      return { errors: [{ field: 'name', message: 'A collection with a similar name already exists.' }] }
+    const errRes = handlePrismaError(error, 'An unexpected error occurred while updating the collection.')
+    if (errRes.field) {
+      return { errors: [{ field: errRes.field, message: errRes.message }] }
     }
-    return { error: 'An unexpected error occurred while updating the collection.' }
+    return { error: errRes.message }
   }
 
   redirect('/admin/collections')
@@ -233,6 +200,7 @@ export async function deleteCollectionAction(
     return { success: true, productCount: collection._count.products }
   } catch (error) {
     console.error('Failed to delete collection:', error)
-    return { success: false, error: 'Failed to delete collection. Please try again.' }
+    const errRes = handlePrismaError(error, 'Failed to delete collection. Please try again.')
+    return { success: false, error: errRes.message }
   }
 }

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { verifyAdminSession } from '@/lib/auth'
 import { parseStoreSettingsInput } from '@/lib/validation'
+import { handlePrismaError } from '@/lib/errors'
 import {
   validateImageBuffer,
   isStorageConfigured,
@@ -153,7 +154,9 @@ export async function updateStoreSettingsAction(
     if (existing?.logoUrl && existing.logoUrl !== finalLogoUrl) {
       const shared = await isImageShared(existing.logoUrl)
       if (!shared) {
-        await deleteStoredImage(existing.logoUrl).catch(() => {})
+        await deleteStoredImage(existing.logoUrl).catch((warnErr) => {
+          console.warn('Could not clean up obsolete store logo from storage:', warnErr)
+        })
       }
     }
 
@@ -168,6 +171,15 @@ export async function updateStoreSettingsAction(
     return { success: true }
   } catch (err) {
     console.error('Failed to update store settings:', err)
-    return { error: 'Failed to save store settings. Please try again.' }
+    if (finalLogoUrl && finalLogoUrl !== existing?.logoUrl && finalLogoUrl !== parsed.data.logoUrl) {
+      await deleteStoredImage(finalLogoUrl).catch((cleanupErr) => {
+        console.warn('Failed to clean up uploaded logo after DB failure:', cleanupErr)
+      })
+    }
+    const errRes = handlePrismaError(err, 'Failed to save store settings. Please try again.')
+    if (errRes.field) {
+      return { errors: [{ field: errRes.field, message: errRes.message }] }
+    }
+    return { error: errRes.message }
   }
 }

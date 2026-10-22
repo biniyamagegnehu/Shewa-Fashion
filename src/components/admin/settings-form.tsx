@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useTransition } from 'react'
+import React, { useState, useRef, useTransition, useEffect } from 'react'
 import Image from 'next/image'
 import { updateStoreSettingsAction, type SettingsActionState } from '@/app/actions/settings'
 
@@ -46,22 +46,59 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
   // Logo upload state
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string>(initialSettings?.logoUrl || '')
+  const [clientLogoError, setClientLogoError] = useState<string | null>(null)
   const [removeLogo, setRemoveLogo] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
+  const currentObjectUrlRef = useRef<string | null>(null)
+
+  // Revoke object URL on unmount to prevent browser memory leaks
+  useEffect(() => {
+    return () => {
+      if (currentObjectUrlRef.current) {
+        URL.revokeObjectURL(currentObjectUrlRef.current)
+      }
+    }
+  }, [])
 
   function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0]
+      // 5 MB client guard
+      if (file.size > 5 * 1024 * 1024) {
+        setClientLogoError('Logo image file exceeds the 5 MB limit.')
+        if (logoInputRef.current) logoInputRef.current.value = ''
+        return
+      }
+
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/svg+xml']
+      if (!validTypes.includes(file.type)) {
+        setClientLogoError('Unsupported logo format. Please select a PNG, JPEG, WebP, AVIF, or SVG image.')
+        if (logoInputRef.current) logoInputRef.current.value = ''
+        return
+      }
+
+      if (currentObjectUrlRef.current) {
+        URL.revokeObjectURL(currentObjectUrlRef.current)
+      }
+
+      const objUrl = URL.createObjectURL(file)
+      currentObjectUrlRef.current = objUrl
       setLogoFile(file)
       setRemoveLogo(false)
-      setLogoPreview(URL.createObjectURL(file))
+      setLogoPreview(objUrl)
+      setClientLogoError(null)
     }
   }
 
   function handleRemoveLogo() {
+    if (currentObjectUrlRef.current) {
+      URL.revokeObjectURL(currentObjectUrlRef.current)
+      currentObjectUrlRef.current = null
+    }
     setLogoFile(null)
     setLogoPreview('')
     setRemoveLogo(true)
+    setClientLogoError(null)
     if (logoInputRef.current) {
       logoInputRef.current.value = ''
     }
@@ -248,8 +285,10 @@ export function SettingsForm({ initialSettings }: SettingsFormProps) {
               </p>
             </div>
           </div>
-          {getFieldError('logo') && (
-            <p className="text-xs text-red-600 mt-1">{getFieldError('logo')}</p>
+          {(clientLogoError || getFieldError('logo') || getFieldError('logoUrl')) && (
+            <p className="text-xs text-red-600 mt-1">
+              {clientLogoError || getFieldError('logo') || getFieldError('logoUrl')}
+            </p>
           )}
         </div>
       </div>

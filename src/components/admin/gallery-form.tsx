@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useTransition } from 'react'
+import React, { useState, useRef, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -45,15 +45,50 @@ export function GalleryForm({ initialData, isEdit = false }: GalleryFormProps) {
   // File upload state & preview
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string>(initialData?.imageUrl || '')
+  const [clientImageError, setClientImageError] = useState<string | null>(null)
   const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const currentObjectUrlRef = useRef<string | null>(null)
+
+  // Revoke object URL on unmount to prevent browser memory leaks
+  useEffect(() => {
+    return () => {
+      if (currentObjectUrlRef.current) {
+        URL.revokeObjectURL(currentObjectUrlRef.current)
+      }
+    }
+  }, [])
+
+  function processSelectedFile(file: File) {
+    // 5 MB client-side guard
+    if (file.size > 5 * 1024 * 1024) {
+      setClientImageError('Image file exceeds the 5 MB limit. Please select a smaller photo.')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
+    // Supported MIME check
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif']
+    if (!validTypes.includes(file.type)) {
+      setClientImageError('Unsupported format. Please select a JPEG, PNG, WebP, or AVIF image.')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
+    if (currentObjectUrlRef.current) {
+      URL.revokeObjectURL(currentObjectUrlRef.current)
+    }
+
+    const objUrl = URL.createObjectURL(file)
+    currentObjectUrlRef.current = objUrl
+    setSelectedFile(file)
+    setPreviewUrl(objUrl)
+    setClientImageError(null)
+  }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      setSelectedFile(file)
-      const objUrl = URL.createObjectURL(file)
-      setPreviewUrl(objUrl)
+      processSelectedFile(e.target.files[0])
     }
   }
 
@@ -62,17 +97,19 @@ export function GalleryForm({ initialData, isEdit = false }: GalleryFormProps) {
     e.stopPropagation()
     setDragActive(false)
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0]
-      setSelectedFile(file)
-      const objUrl = URL.createObjectURL(file)
-      setPreviewUrl(objUrl)
+      processSelectedFile(e.dataTransfer.files[0])
     }
   }
 
   function handleRemoveImage() {
+    if (currentObjectUrlRef.current) {
+      URL.revokeObjectURL(currentObjectUrlRef.current)
+      currentObjectUrlRef.current = null
+    }
     setSelectedFile(null)
     setPreviewUrl('')
     setDirectImageUrl('')
+    setClientImageError(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -216,8 +253,10 @@ export function GalleryForm({ initialData, isEdit = false }: GalleryFormProps) {
           />
         </div>
 
-        {getFieldError('image') && (
-          <p className="text-xs text-red-600 mt-1">{getFieldError('image')}</p>
+        {(clientImageError || getFieldError('image') || getFieldError('imageUrl')) && (
+          <p className="text-xs text-red-600 mt-1">
+            {clientImageError || getFieldError('image') || getFieldError('imageUrl')}
+          </p>
         )}
       </div>
 

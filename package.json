@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint src",
     "prisma": "node --env-file-if-exists=.env --env-file-if-exists=.env.local node_modules/prisma/build/index.js",
     "db:generate": "npm run prisma -- generate",
     "db:migrate": "npm run prisma -- migrate dev",
@@ -20,6 +20,7 @@
     "test:simplified-products": "tsx -r ./scripts/stub-server-only.cjs scripts/test-simplified-products.ts",
     "test:categories": "tsx -r ./scripts/stub-server-only.cjs scripts/test-categories.ts",
     "test:gallery-settings": "tsx -r ./scripts/stub-server-only.cjs scripts/test-gallery-settings.ts",
+    "test:image-upload": "tsx -r ./scripts/stub-server-only.cjs scripts/test-image-upload.ts",
     "create-admin": "tsx scripts/create-admin.ts",
     "db:studio": "npm run prisma -- studio"
   },

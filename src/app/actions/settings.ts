@@ -101,7 +101,7 @@ export async function updateStoreSettingsAction(
         }
       }
 
-      const uploadRes = await uploadSettingsImage(buffer, file.name)
+      const uploadRes = await uploadSettingsImage(buffer)
       if (!uploadRes.ok || !uploadRes.url) {
         return { error: uploadRes.error || 'Failed to upload brand logo.' }
       }

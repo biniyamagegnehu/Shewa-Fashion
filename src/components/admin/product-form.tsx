@@ -57,7 +57,18 @@ export function ProductForm({
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string>(initialData?.imageUrl || '')
   const [clientImageError, setClientImageError] = useState<string | null>(null)
+  const [dragActive, setDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const currentObjectUrlRef = useRef<string | null>(null)
+
+  // Revoke any created object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (currentObjectUrlRef.current) {
+        URL.revokeObjectURL(currentObjectUrlRef.current)
+      }
+    }
+  }, [])
 
   // 4. Description state
   const [description, setDescription] = useState(initialData?.description || '')
@@ -75,35 +86,11 @@ export function ProductForm({
     initialData?.available === false ? 'draft' : 'published'
   )
 
-  // Update object URL preview when file changes
-  useEffect(() => {
-    if (!selectedFile) {
-      if (initialData?.imageUrl) {
-        setPreviewUrl(initialData.imageUrl)
-      } else {
-        setPreviewUrl('')
-      }
-      return
-    }
-
-    const objectUrl = URL.createObjectURL(selectedFile)
-    setPreviewUrl(objectUrl)
-    setClientImageError(null)
-
-    return () => {
-      URL.revokeObjectURL(objectUrl)
-    }
-  }, [selectedFile, initialData?.imageUrl])
-
-  // File selection handler
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  // Process selected file (used by both input change and drag & drop)
+  const processSelectedFile = (file: File) => {
     // Client-side quick size guard (5 MB)
     if (file.size > 5 * 1024 * 1024) {
       setClientImageError('Image file exceeds the 5 MB limit. Please select a smaller photo.')
-      setSelectedFile(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
@@ -112,24 +99,59 @@ export function ProductForm({
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif']
     if (!validTypes.includes(file.type)) {
       setClientImageError('Unsupported format. Please select a JPEG, PNG, WebP, or AVIF image.')
-      setSelectedFile(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
 
-    setClientImageError(null)
+    if (currentObjectUrlRef.current) {
+      URL.revokeObjectURL(currentObjectUrlRef.current)
+    }
+
+    const objectUrl = URL.createObjectURL(file)
+    currentObjectUrlRef.current = objectUrl
     setSelectedFile(file)
+    setPreviewUrl(objectUrl)
+    setClientImageError(null)
+  }
+
+  // File selection handler
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    processSelectedFile(file)
+  }
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file) {
+      processSelectedFile(file)
+    }
   }
 
   const handleRemoveSelectedFile = () => {
+    if (currentObjectUrlRef.current) {
+      URL.revokeObjectURL(currentObjectUrlRef.current)
+      currentObjectUrlRef.current = null
+    }
     setSelectedFile(null)
     setClientImageError(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
-    if (initialData?.imageUrl) {
-      setPreviewUrl(initialData.imageUrl)
-    } else {
-      setPreviewUrl('')
-    }
+    setPreviewUrl(initialData?.imageUrl || '')
   }
 
   // Toggle size chip selection
@@ -316,8 +338,13 @@ export function ProductForm({
 
             {/* Image Upload Area & Preview Box */}
             <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
               className={`rounded-xl border transition-all ${
-                imageErrorMessage
+                dragActive
+                  ? 'border-primary ring-2 ring-primary/20 bg-primary-light/20'
+                  : imageErrorMessage
                   ? 'border-red-500 bg-red-50/10'
                   : 'border-border bg-background/50 hover:bg-background'
               }`}

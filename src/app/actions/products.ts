@@ -7,7 +7,6 @@ import { verifyAdminSession } from '@/lib/auth'
 import {
   slugify,
   parseProductInput,
-  ProductOptionType,
   ProductInputImage,
   ProductInputOption,
 } from '@/lib/validation'
@@ -16,8 +15,8 @@ import {
   uploadProductImage,
   deleteProductImage,
   isStorageConfigured,
+  isImageShared,
 } from '@/lib/storage'
-import { OptionType } from '@prisma/client'
 import type { ValidationDetail } from '@/lib/api-response'
 
 export interface ProductActionState {
@@ -94,7 +93,7 @@ export async function createProductAction(
         }
       }
 
-      const uploadRes = await uploadProductImage(buffer, file.name)
+      const uploadRes = await uploadProductImage(buffer)
       if (!uploadRes.ok || !uploadRes.url) {
         return { error: uploadRes.error || 'Failed to upload image file to storage.' }
       }
@@ -123,7 +122,7 @@ export async function createProductAction(
     return { errors: [{ field: 'name', message: 'Product name is required.' }] }
   }
 
-  let baseSlug = slugify(rawName) || 'product'
+  const baseSlug = slugify(rawName) || 'product'
   let slug = baseSlug
   let counter = 1
   while (true) {
@@ -287,7 +286,7 @@ export async function updateProductAction(
         }
       }
 
-      const uploadRes = await uploadProductImage(buffer, file.name)
+      const uploadRes = await uploadProductImage(buffer)
       if (!uploadRes.ok || !uploadRes.url) {
         return { error: uploadRes.error || 'Failed to upload image file to storage.' }
       }
@@ -328,7 +327,7 @@ export async function updateProductAction(
   let slug = existing.slug
   if (rawName !== existing.name) {
     // Generate new unique slug if name was updated
-    let baseSlug = slugify(rawName) || 'product'
+    const baseSlug = slugify(rawName) || 'product'
     slug = baseSlug
     let counter = 1
     while (true) {
@@ -420,11 +419,9 @@ export async function updateProductAction(
 
     // 8. Storage Clean-up: If image was replaced successfully, clean up obsolete file
     if (imageWasReplaced && oldImageUrl && oldImageUrl !== finalImageUrl) {
-      // Verify no other product is using the old image URL
-      const isShared = await prisma.productImage.findFirst({
-        where: { url: oldImageUrl, productId: { not: productId } },
-      })
-      if (!isShared) {
+      // Verify no other product, gallery item, or setting is using the old image URL
+      const shared = await isImageShared(oldImageUrl)
+      if (!shared) {
         await deleteProductImage(oldImageUrl).catch((err) =>
           console.error('Failed to clean up obsolete image:', err)
         )
@@ -496,12 +493,10 @@ export async function deleteProductAction(
       where: { id: productId },
     })
 
-    // 4. Safely clean up stored images if not shared with another product
+    // 4. Safely clean up stored images if not shared with another product, gallery item, or setting
     for (const imgUrl of imagesToCleanup) {
-      const isShared = await prisma.productImage.findFirst({
-        where: { url: imgUrl },
-      })
-      if (!isShared) {
+      const shared = await isImageShared(imgUrl)
+      if (!shared) {
         await deleteProductImage(imgUrl).catch((err) =>
           console.error('Failed to delete asset from storage:', err)
         )

@@ -22,6 +22,9 @@ export interface StorageConfig {
   endpoint?: string
   publicUrl?: string
   blobToken?: string
+  cloudinaryCloudName?: string
+  cloudinaryApiKey?: string
+  cloudinaryApiSecret?: string
 }
 
 export interface ImageValidationResult {
@@ -131,6 +134,9 @@ export function getStorageConfig(): StorageConfig {
     endpoint: process.env.STORAGE_ENDPOINT,
     publicUrl: process.env.STORAGE_PUBLIC_URL,
     blobToken: process.env.BLOB_READ_WRITE_TOKEN,
+    cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+    cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
   }
 }
 
@@ -138,7 +144,10 @@ export function isStorageConfigured(): boolean {
   const cfg = getStorageConfig()
   const hasS3 = Boolean(cfg.bucket && cfg.accessKeyId && cfg.secretAccessKey)
   const hasBlob = Boolean(cfg.blobToken)
-  return hasS3 || hasBlob
+  const hasCloudinary = Boolean(
+    cfg.cloudinaryCloudName && cfg.cloudinaryApiKey && cfg.cloudinaryApiSecret
+  )
+  return hasS3 || hasBlob || hasCloudinary
 }
 
 /**
@@ -292,13 +301,66 @@ async function uploadToBlob(
 }
 
 /**
+ * Upload an image buffer to Cloudinary using their signed REST API.
+ */
+async function uploadToCloudinary(
+  buffer: Buffer,
+  folder: string,
+  mime: string,
+  cloudName: string,
+  apiKey: string,
+  apiSecret: string
+): Promise<UploadResult> {
+  try {
+    const timestamp = Math.floor(Date.now() / 1000)
+    const random = randomBytes(8).toString('hex')
+    const publicId = `${timestamp}-${random}`
+    const fullFolder = `shewa-fashion/${folder.replace(/[^a-zA-Z0-9_-]/g, '') || 'products'}`
+
+    // Cloudinary signature requires parameters to be sorted alphabetically:
+    // folder=...&public_id=...&timestamp=...<api_secret>
+    const stringToSign = `folder=${fullFolder}&public_id=${publicId}&timestamp=${timestamp}${apiSecret}`
+    const signature = createHash('sha1').update(stringToSign).digest('hex')
+
+    const formData = new FormData()
+    const blob = new Blob([new Uint8Array(buffer)], { type: mime })
+    formData.append('file', blob, `${publicId}.${mime.split('/')[1] || 'jpg'}`)
+    formData.append('api_key', apiKey)
+    formData.append('timestamp', String(timestamp))
+    formData.append('folder', fullFolder)
+    formData.append('public_id', publicId)
+    formData.append('signature', signature)
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '')
+      console.error('Cloudinary upload failed with status:', res.status, errText)
+      return { ok: false, error: `Cloudinary upload failed with status ${res.status}.` }
+    }
+
+    const data = await res.json()
+    return {
+      ok: true,
+      url: data.secure_url || data.url,
+      key: data.public_id,
+    }
+  } catch (err) {
+    console.error('Unexpected error during Cloudinary upload:', err)
+    return { ok: false, error: 'Failed to connect to Cloudinary storage service.' }
+  }
+}
+
+/**
  * Main server-side upload entry point with folder namespacing.
  * Validates file content, enforces allowlists, and persists to configured storage.
  */
 export async function uploadImage(
   fileOrBuffer: Buffer | ArrayBuffer | Uint8Array,
-  folder: string = 'products',
-  originalFilename?: string
+  folder: string = 'products'
 ): Promise<UploadResult> {
   const buffer = Buffer.isBuffer(fileOrBuffer)
     ? fileOrBuffer
@@ -316,14 +378,25 @@ export async function uploadImage(
     return {
       ok: false,
       error:
-        'Image storage is not configured. Please set STORAGE_BUCKET, STORAGE_ACCESS_KEY_ID, and STORAGE_SECRET_ACCESS_KEY in .env.local to enable image uploads.',
+        'Image storage is not configured. Please configure Cloudinary, AWS S3, Cloudflare R2, or Vercel Blob credentials in .env.local to enable image uploads.',
     }
   }
 
   // 3. Generate Safe Storage Key
   const key = generateSafeStorageKey(validation.ext!, folder)
 
-  // 4. Upload to Configured Provider
+  // 4. Upload to Configured Provider (Cloudinary -> Vercel Blob -> S3/R2)
+  if (config.cloudinaryCloudName && config.cloudinaryApiKey && config.cloudinaryApiSecret) {
+    return uploadToCloudinary(
+      buffer,
+      folder,
+      validation.mime!,
+      config.cloudinaryCloudName,
+      config.cloudinaryApiKey,
+      config.cloudinaryApiSecret
+    )
+  }
+
   if (config.blobToken) {
     return uploadToBlob(buffer, key, validation.mime!, config.blobToken)
   }
@@ -335,30 +408,27 @@ export async function uploadImage(
  * Upload a product image (stored in products/ namespace).
  */
 export async function uploadProductImage(
-  fileOrBuffer: Buffer | ArrayBuffer | Uint8Array,
-  originalFilename?: string
+  fileOrBuffer: Buffer | ArrayBuffer | Uint8Array
 ): Promise<UploadResult> {
-  return uploadImage(fileOrBuffer, 'products', originalFilename)
+  return uploadImage(fileOrBuffer, 'products')
 }
 
 /**
  * Upload a gallery lookbook image (stored in gallery/ namespace).
  */
 export async function uploadGalleryImage(
-  fileOrBuffer: Buffer | ArrayBuffer | Uint8Array,
-  originalFilename?: string
+  fileOrBuffer: Buffer | ArrayBuffer | Uint8Array
 ): Promise<UploadResult> {
-  return uploadImage(fileOrBuffer, 'gallery', originalFilename)
+  return uploadImage(fileOrBuffer, 'gallery')
 }
 
 /**
  * Upload a store settings image / logo (stored in settings/ namespace).
  */
 export async function uploadSettingsImage(
-  fileOrBuffer: Buffer | ArrayBuffer | Uint8Array,
-  originalFilename?: string
+  fileOrBuffer: Buffer | ArrayBuffer | Uint8Array
 ): Promise<UploadResult> {
-  return uploadImage(fileOrBuffer, 'settings', originalFilename)
+  return uploadImage(fileOrBuffer, 'settings')
 }
 
 /**
@@ -410,6 +480,58 @@ export async function deleteStoredImage(
   }
 
   const config = getStorageConfig()
+
+  // 1. Cloudinary asset deletion
+  if (
+    imageUrlOrKey.includes('res.cloudinary.com') ||
+    imageUrlOrKey.startsWith('shewa-fashion/')
+  ) {
+    if (config.cloudinaryCloudName && config.cloudinaryApiKey && config.cloudinaryApiSecret) {
+      try {
+        let publicId = imageUrlOrKey
+        if (imageUrlOrKey.startsWith('http://') || imageUrlOrKey.startsWith('https://')) {
+          const parsed = new URL(imageUrlOrKey)
+          const match = parsed.pathname.match(
+            /\/image\/upload\/(?:v\d+\/)?(.+?)(?:\.[a-zA-Z0-9]+)?$/
+          )
+          if (match && match[1]) {
+            publicId = match[1]
+          }
+        } else {
+          publicId = publicId.replace(/\.[a-zA-Z0-9]+$/, '')
+        }
+
+        const strippedFolder = publicId.replace(/^shewa-fashion\//, '')
+        if (!allowedPrefixes.some((prefix) => strippedFolder.startsWith(prefix))) {
+          return false
+        }
+
+        const timestamp = Math.floor(Date.now() / 1000)
+        const stringToSign = `public_id=${publicId}&timestamp=${timestamp}${config.cloudinaryApiSecret}`
+        const signature = createHash('sha1').update(stringToSign).digest('hex')
+
+        const formData = new FormData()
+        formData.append('public_id', publicId)
+        formData.append('api_key', config.cloudinaryApiKey)
+        formData.append('timestamp', String(timestamp))
+        formData.append('signature', signature)
+
+        const res = await fetch(
+          `https://api.cloudinary.com/v1_1/${config.cloudinaryCloudName}/image/destroy`,
+          {
+            method: 'POST',
+            body: formData,
+          }
+        )
+
+        return res.ok
+      } catch (err) {
+        console.error('Failed to delete image from Cloudinary:', err)
+        return false
+      }
+    }
+    return false
+  }
 
   // Extract storage key from URL
   let key = imageUrlOrKey

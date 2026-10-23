@@ -116,13 +116,21 @@ async function run() {
   })
   assert(!emptyCurrent.ok && emptyCurrent.errors.some((e) => e.field === 'currentPassword'), 'parseChangePasswordInput: rejects missing current password')
 
-  // New password under 12 characters (policy minimum)
+  // New password under 8 characters (policy minimum)
   const shortNewPw = parseChangePasswordInput({
     currentPassword: 'CurrentAdminPassword123!',
-    newPassword: 'ShortPass12', // 11 characters
-    confirmPassword: 'ShortPass12',
+    newPassword: 'ShortP7', // 7 characters
+    confirmPassword: 'ShortP7',
   })
-  assert(!shortNewPw.ok && shortNewPw.errors.some((e) => e.field === 'newPassword' && e.message.includes('12')), 'parseChangePasswordInput: rejects new password under 12 characters')
+  assert(!shortNewPw.ok && shortNewPw.errors.some((e) => e.field === 'newPassword' && e.message.includes('8')), 'parseChangePasswordInput: rejects new password under 8 characters')
+
+  // Exactly 8 characters is accepted
+  const exactly8Pw = parseChangePasswordInput({
+    currentPassword: 'CurrentAdminPassword123!',
+    newPassword: 'Exact8Pw', // 8 characters
+    confirmPassword: 'Exact8Pw',
+  })
+  assert(exactly8Pw.ok, 'parseChangePasswordInput: accepts password of exactly 8 characters')
 
   // Mismatched confirmation
   const mismatchedPw = parseChangePasswordInput({

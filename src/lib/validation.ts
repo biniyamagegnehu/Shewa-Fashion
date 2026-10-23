@@ -1156,7 +1156,7 @@ export interface ChangePasswordInput {
  * Validate administrator password change request.
  * Enforces:
  * - Current password is provided (not empty)
- * - New password is at least 12 characters long (no arbitrary composition rules)
+ * - New password is at least 8 characters long (no arbitrary composition rules)
  * - New password does not exceed 128 characters
  * - New password confirmation strictly matches
  * - New password is not identical to current password
@@ -1180,10 +1180,10 @@ export function parseChangePasswordInput(raw: unknown): ParseResult<ChangePasswo
 
   if (!newPassword) {
     errors.push({ field: 'newPassword', message: 'New password is required.' })
-  } else if (newPassword.length < 12) {
+  } else if (newPassword.length < 8) {
     errors.push({
       field: 'newPassword',
-      message: 'New password must be at least 12 characters long.',
+      message: 'New password must be at least 8 characters long.',
     })
   } else if (newPassword.length > 128) {
     errors.push({

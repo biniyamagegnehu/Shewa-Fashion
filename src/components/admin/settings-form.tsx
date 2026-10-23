@@ -1133,7 +1133,7 @@ export function SettingsForm({ initialSettings, admin }: SettingsFormProps) {
                 onChange={(e) => setNewPassword(e.target.value)}
                 aria-invalid={Boolean(getPasswordError('newPassword'))}
                 aria-describedby={getPasswordError('newPassword') ? 'new-password-error' : undefined}
-                placeholder="At least 12 characters"
+                placeholder="At least 8 characters"
                 className={`w-full pl-3.5 pr-11 py-2.5 text-sm rounded-xl border bg-background text-main focus:outline-none focus:ring-2 focus:ring-primary/20 ${
                   getPasswordError('newPassword')
                     ? 'border-red-400 focus:border-red-500'
@@ -1169,10 +1169,10 @@ export function SettingsForm({ initialSettings, admin }: SettingsFormProps) {
             <div className="flex items-center gap-2 mt-1.5 text-[11px]">
               <span
                 className={`inline-flex items-center gap-1 font-medium ${
-                  newPassword.length >= 12 ? 'text-emerald-600 font-semibold' : 'text-secondary'
+                  newPassword.length >= 8 ? 'text-emerald-600 font-semibold' : 'text-secondary'
                 }`}
               >
-                {newPassword.length >= 12 ? '✓ Minimum 12 characters met' : '• Requires at least 12 characters'}
+                {newPassword.length >= 8 ? '✓ Minimum 8 characters met' : '• Requires at least 8 characters'}
               </span>
               {newPassword.length > 0 && (
                 <span className="text-secondary">({newPassword.length} chars)</span>
@@ -1250,7 +1250,7 @@ export function SettingsForm({ initialSettings, admin }: SettingsFormProps) {
               disabled={
                 isPasswordPending ||
                 !currentPassword ||
-                newPassword.length < 12 ||
+                newPassword.length < 8 ||
                 newPassword !== confirmPassword
               }
               id="change-password-btn"

@@ -1,157 +1,108 @@
 import React from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Container } from "@/components/ui/container";
-import { Button } from "@/components/ui/button";
 
 export function Hero() {
   return (
     <section
+      id="homepage-hero"
       aria-labelledby="hero-title"
-      className="relative pt-4 sm:pt-6 pb-12 sm:pb-16 md:pb-20 overflow-hidden"
+      className="relative w-full overflow-hidden bg-main -mt-16 sm:-mt-20 min-h-[600px] sm:min-h-[660px] md:min-h-[720px] lg:min-h-[780px] xl:h-[92vh] xl:max-h-[900px] flex items-center justify-center"
     >
-      <Container>
-        {/* Mobile View (Dedicated Stacked Visual Composition) */}
-        <div className="md:hidden relative rounded-2xl overflow-hidden bg-main text-white shadow-xl min-h-[540px] flex flex-col justify-end p-6">
-          {/* Background Fashion Campaign Image */}
-          <div className="absolute inset-0 z-0">
-            <Image
-              src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1000&q=85"
-              alt="Shewa Fashion Contemporary Editorial Campaign"
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover object-top opacity-85"
-            />
-            {/* Gradient Overlay for Legibility */}
-            <div className="absolute inset-0 bg-gradient-to-t from-main via-main/60 to-transparent" />
-          </div>
-
-          {/* Mobile Hero Content Overlay */}
-          <div className="relative z-10 flex flex-col gap-3">
-            <div className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-surface/15 backdrop-blur-md border border-white/20 text-[11px] font-semibold uppercase tracking-widest text-accent-gold">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-gold" />
-              <span>Spring / Summer 2026</span>
-            </div>
-
-            <h1
-              id="hero-title"
-              className="font-serif text-3xl sm:text-4xl font-medium tracking-tight text-white leading-tight"
-            >
-              Modern fashion,
-              <br />
-              <span className="italic font-normal">inspired by Shewa.</span>
-            </h1>
-
-            <p className="text-sm text-white/90 leading-relaxed max-w-sm">
-              Contemporary clothing, shoes, bags, and artisan accessories
-              blending Ethiopian textile heritage with effortless modern design.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 pt-3">
-              <Button href="/shop" size="md" variant="primary" fullWidth>
-                Explore Shop
-              </Button>
-              <Button
-                href="/collections"
-                size="md"
-                variant="outline"
-                fullWidth
-                className="bg-white/10 text-white border-white/30 hover:bg-white/20 hover:text-white"
-              >
-                Explore Collection
-              </Button>
-            </div>
-          </div>
+      {/* 1. Background Fashion Photography (Full-Width, Uncluttered) */}
+      <div className="absolute -top-2 inset-x-0 bottom-0 z-0">
+        {/* Desktop / Tablet Landscape Editorial Image */}
+        <div className="hidden md:block absolute inset-0">
+          <Image
+            src="/images/hero/shewa-hero-editorial.jpg"
+            alt="Shewa Fashion Contemporary Apparel & Handcrafted Leather Footwear"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-[78%_center] xl:object-center select-none"
+          />
         </div>
 
-        {/* Tablet & Desktop View (Progressively Enhanced Editorial Layout) */}
-        <div className="hidden md:grid md:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* Left Text Column */}
-          <div className="md:col-span-7 lg:col-span-6 flex flex-col gap-6 py-6">
-            <div className="inline-flex items-center gap-2 self-start px-3.5 py-1.5 rounded-full bg-primary-light border border-primary/20 text-xs font-semibold uppercase tracking-widest text-primary">
-              <span className="w-2 h-2 rounded-full bg-primary" />
-              <span>New Season • Volume IV Collection</span>
-            </div>
+        {/* Mobile Vertical Editorial Image */}
+        <div className="md:hidden absolute inset-0">
+          <Image
+            src="/images/hero/shewa-hero-mobile.jpg"
+            alt="Shewa Fashion Modern Ethiopian Apparel and Footwear Collection"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-top select-none"
+          />
+        </div>
 
-            <h1
-              id="hero-title-desktop"
-              className="font-serif text-4xl lg:text-5xl xl:text-6xl font-medium tracking-tight text-main leading-[1.12]"
-            >
-              Modern fashion,
-              <br />
-              <span className="italic font-normal text-secondary">
-                inspired by Shewa.
-              </span>
-            </h1>
+        {/* 2. Seamless Cinematic Overlay & Scrim for Readability */}
+        {/* Uniform dark ambient wash */}
+        <div className="absolute inset-0 bg-black/45 md:bg-black/40 pointer-events-none" />
 
-            <p className="text-secondary text-base lg:text-lg leading-relaxed max-w-xl">
-              Contemporary clothing, handcrafted leather shoes, structural bags,
-              and fine accessories crafted in celebration of authentic Ethiopian
-              textile traditions.
-            </p>
+        {/* Vertical gradient: darker at top (for transparent header) and bottom (for section transition) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#111822]/80 via-transparent via-40% to-[#111822]/85 pointer-events-none" />
+      </div>
 
-            {/* CTAs */}
-            <div className="flex items-center gap-4 pt-2">
-              <Button href="/shop" size="lg" variant="primary">
-                Explore Shop
-              </Button>
-              <Button href="/collections" size="lg" variant="outline">
-                Explore Collection
-              </Button>
-            </div>
-
-            {/* Value Highlights */}
-            <div className="grid grid-cols-3 gap-4 pt-8 border-t border-border mt-4">
-              <div>
-                <p className="font-serif text-xl lg:text-2xl font-medium text-main">
-                  100%
-                </p>
-                <p className="text-xs text-secondary tracking-wide uppercase pt-0.5">
-                  Artisan Fibers
-                </p>
-              </div>
-              <div>
-                <p className="font-serif text-xl lg:text-2xl font-medium text-main">
-                  Addis Ababa
-                </p>
-                <p className="text-xs text-secondary tracking-wide uppercase pt-0.5">
-                  Design Studio
-                </p>
-              </div>
-              <div>
-                <p className="font-serif text-xl lg:text-2xl font-medium text-main">
-                  Worldwide
-                </p>
-                <p className="text-xs text-secondary tracking-wide uppercase pt-0.5">
-                  Direct Shipping
-                </p>
-              </div>
-            </div>
+      {/* 3. Centered Editorial Content (Wearix-Inspired Layout) */}
+      <Container className="relative z-10 w-full pt-28 sm:pt-36 md:pt-40 pb-16 sm:pb-24 flex flex-col items-center justify-center text-center">
+        <div className="max-w-3xl flex flex-col items-center gap-4 sm:gap-6">
+          {/* Eyebrow Badge */}
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs font-medium text-white shadow-xs">
+            <span className="px-2 py-0.5 rounded-full bg-white text-main text-[10px] font-bold tracking-wider uppercase">
+              New
+            </span>
+            <span className="tracking-wide text-white/95">
+              Style That Feels Like You
+            </span>
           </div>
 
-          {/* Right Image Column */}
-          <div className="md:col-span-5 lg:col-span-6 relative">
-            <div className="relative aspect-[4/5] w-full max-w-lg mx-auto rounded-2xl overflow-hidden shadow-2xl bg-surface border border-border">
-              <Image
-                src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=85"
-                alt="Contemporary Ethiopian Fashion Silhouette"
-                fill
-                priority
-                sizes="(max-width: 1024px) 45vw, 50vw"
-                className="object-cover object-center"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-main/30 via-transparent to-transparent" />
-            </div>
+          {/* Main Headline */}
+          <h1
+            id="hero-title"
+            className="font-serif text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-medium tracking-tight text-white leading-[1.12] text-balance max-w-2xl sm:max-w-3xl"
+          >
+            Find Your{" "}
+            <span className="italic font-normal text-primary-light">
+              Everyday Style.
+            </span>
+          </h1>
 
-            {/* Floating Editorial Badge */}
-            <div className="absolute -bottom-6 -left-6 lg:left-4 bg-surface p-4 rounded-xl shadow-lg border border-border max-w-[220px]">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-accent-gold">
-                Heritage Craft
-              </span>
-              <p className="font-serif text-sm font-medium text-main pt-0.5">
-                Hand-spun organic cotton & vegetable-tanned leather.
-              </p>
-            </div>
+          {/* Supporting Description */}
+          <p className="text-sm sm:text-base lg:text-lg text-white/90 leading-relaxed max-w-xl font-normal mx-auto text-balance">
+            Explore clothing and footwear selected to bring comfort, confidence,
+            and character to your everyday look.
+          </p>
+
+          {/* Side-by-Side Balanced CTAs (Desktop & Mobile) */}
+          <div className="flex flex-row items-center justify-center gap-2.5 sm:gap-4 pt-3 w-full max-w-md mx-auto">
+            <Link
+              href="/shop"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 sm:px-7 py-3 sm:py-3.5 rounded-full bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm md:text-base font-semibold shadow-lg hover:shadow-primary/30 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 text-center whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-light focus-visible:ring-offset-2 focus-visible:ring-offset-main"
+            >
+              <span>Explore Collection</span>
+              <svg
+                className="w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform duration-200 group-hover:translate-x-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+                />
+              </svg>
+            </Link>
+
+            <Link
+              href="/collections"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center px-5 sm:px-7 py-3 sm:py-3.5 rounded-full bg-white/15 hover:bg-white/25 text-white border border-white/30 backdrop-blur-md text-xs sm:text-sm md:text-base font-medium transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 text-center whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-main"
+            >
+              <span>View Collections</span>
+            </Link>
           </div>
         </div>
       </Container>

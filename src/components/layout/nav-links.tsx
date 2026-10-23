@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 interface NavLinksProps {
   items: NavItem[];
+  isTransparent?: boolean;
 }
 
 /**
@@ -16,7 +17,7 @@ interface NavLinksProps {
  * wrapped in <Suspense>, satisfying Next.js's prerender requirements
  * when usePathname() is used.
  */
-export function NavLinks({ items }: NavLinksProps) {
+export function NavLinks({ items, isTransparent = false }: NavLinksProps) {
   const pathname = usePathname();
 
   return (
@@ -29,7 +30,11 @@ export function NavLinks({ items }: NavLinksProps) {
             href={item.href}
             className={cn(
               "text-sm font-medium tracking-wide transition-colors py-2 relative",
-              isActive
+              isTransparent
+                ? isActive
+                  ? "text-white font-semibold"
+                  : "text-white/80 hover:text-white"
+                : isActive
                 ? "text-primary font-semibold"
                 : "text-secondary hover:text-main"
             )}
@@ -37,7 +42,12 @@ export function NavLinks({ items }: NavLinksProps) {
           >
             {item.label}
             {isActive && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+              <span
+                className={cn(
+                  "absolute bottom-0 left-0 right-0 h-0.5 rounded-full",
+                  isTransparent ? "bg-white" : "bg-primary"
+                )}
+              />
             )}
           </Link>
         );

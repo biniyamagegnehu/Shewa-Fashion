@@ -1,7 +1,7 @@
 import 'server-only'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import type { NextResponse } from 'next/server'
+import { connection, type NextResponse } from 'next/server'
 import { getAdminSession } from '@/lib/session'
 import { apiForbidden, apiUnauthenticated } from '@/lib/api-response'
 
@@ -340,6 +340,7 @@ export async function verifyAdminSession(): Promise<AuthenticatedAdmin | null> {
  * Redirects unauthenticated requests to `/admin/login`.
  */
 export async function requireAdminSession(targetUrl?: string): Promise<AuthenticatedAdmin> {
+  await connection()
   const admin = await verifyAdminSession()
   if (!admin) {
     const safeUrl = targetUrl ? getSafeRedirectUrl(targetUrl) : null

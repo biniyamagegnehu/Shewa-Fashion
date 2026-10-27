@@ -697,6 +697,23 @@ export async function getGalleryItems(): Promise<GalleryItemRecord[]> {
   }
 }
 
+export const DEFAULT_STORE_SETTINGS: StoreSettingsRecord = {
+  storeName: "Shewa Fashion",
+  description:
+    "Contemporary Ethiopian fashion honoring heritage with modern tailoring, fine craftsmanship, and timeless elegance.",
+  logoUrl: null,
+  phone: null,
+  email: null,
+  whatsapp: null,
+  address: null,
+  openingHours: null,
+  instagram: null,
+  facebook: null,
+  tiktok: null,
+  telegram: null,
+  googleMapsUrl: null,
+};
+
 /**
  * Retrieves the store settings singleton record with all public details.
  */
@@ -721,9 +738,11 @@ export async function getStoreSettings(): Promise<StoreSettingsRecord | null> {
         googleMapsUrl: true,
       },
     });
-    return settings;
+    return settings ?? DEFAULT_STORE_SETTINGS;
   } catch (error) {
-    console.error("Error retrieving store settings:", error);
-    return null;
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Notice: Database unreachable at localhost:5432. Using default store settings.");
+    }
+    return DEFAULT_STORE_SETTINGS;
   }
 }

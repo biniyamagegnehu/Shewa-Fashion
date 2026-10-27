@@ -184,7 +184,7 @@ export const bestSellers: Product[] = [
     slug: "zoma-artisan-brass-cuff",
     price: 1250,
     image:
-      "https://images.unsplash.com/photo-1611591475819-79b8b73ff2f3?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80",
     category: "accessories",
     categoryLabel: "Accessories",
     badge: "BESTSELLER",

@@ -1,6 +1,7 @@
 import 'server-only'
 import crypto from 'crypto'
 import { cookies } from 'next/headers'
+import { connection } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import type { Session } from '@prisma/client'
 
@@ -130,6 +131,8 @@ export async function createAdminSession(userId: string): Promise<{ rawToken: st
  * Updates `lastActiveAt` with a 2-minute write throttle to prevent database overload.
  */
 export async function validateAdminSession(rawToken: string): Promise<SessionValidationResult | null> {
+  await connection()
+
   if (!rawToken || typeof rawToken !== 'string' || rawToken.length < 16) {
     return null
   }
@@ -211,6 +214,7 @@ export async function validateAdminSession(rawToken: string): Promise<SessionVal
  */
 export async function getAdminSession(): Promise<SessionValidationResult | null> {
   try {
+    await connection()
     const cookieStore = await cookies()
     const rawToken = cookieStore.get(SESSION_COOKIE_NAME)?.value
 

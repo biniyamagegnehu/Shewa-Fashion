@@ -8,31 +8,31 @@ export function Hero() {
     <section
       id="homepage-hero"
       aria-labelledby="hero-title"
-      className="relative w-full overflow-hidden bg-main -mt-16 sm:-mt-20 min-h-[600px] sm:min-h-[660px] md:min-h-[720px] lg:min-h-[780px] xl:h-[92vh] xl:max-h-[900px] flex items-center justify-center"
+      className="relative w-full overflow-hidden bg-main -mt-16 sm:-mt-20 min-h-screen h-screen min-h-[100dvh] h-[100dvh] flex items-center justify-center"
     >
-      {/* 1. Background Fashion Photography (Full-Width, Uncluttered) */}
-      <div className="absolute -top-2 inset-x-0 bottom-0 z-0">
+      {/* 1. Background Fashion Photography (Full-Width, Uncluttered, Full Viewport Screen Coverage) */}
+      <div className="absolute inset-0 z-0 w-full h-full pointer-events-none select-none overflow-hidden">
         {/* Desktop / Tablet Landscape Editorial Image */}
-        <div className="hidden md:block absolute inset-0">
+        <div className="hidden md:block absolute inset-0 w-full h-full">
           <Image
             src="/images/hero/shewa-hero-editorial.jpg"
             alt="Shewa Fashion Contemporary Apparel & Handcrafted Leather Footwear"
             fill
             priority
-            sizes="100vw"
-            className="object-cover object-[78%_center] xl:object-center select-none"
+            sizes="(min-width: 768px) 100vw, 1px"
+            className="object-cover object-center md:object-[75%_center] xl:object-center select-none"
           />
         </div>
 
         {/* Mobile Vertical Editorial Image */}
-        <div className="md:hidden absolute inset-0">
+        <div className="md:hidden absolute inset-0 w-full h-full">
           <Image
             src="/images/hero/shewa-hero-mobile.jpg"
             alt="Shewa Fashion Modern Ethiopian Apparel and Footwear Collection"
             fill
             priority
-            sizes="100vw"
-            className="object-cover object-top select-none"
+            sizes="(max-width: 767px) 100vw, 1px"
+            className="object-cover object-center select-none"
           />
         </div>
 
@@ -41,11 +41,11 @@ export function Hero() {
         <div className="absolute inset-0 bg-black/45 md:bg-black/40 pointer-events-none" />
 
         {/* Vertical gradient: darker at top (for transparent header) and bottom (for section transition) */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#111822]/80 via-transparent via-40% to-[#111822]/85 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#111822]/85 via-transparent via-40% to-[#111822]/90 pointer-events-none" />
       </div>
 
-      {/* 3. Centered Editorial Content (Wearix-Inspired Layout) */}
-      <Container className="relative z-10 w-full pt-28 sm:pt-36 md:pt-40 pb-16 sm:pb-24 flex flex-col items-center justify-center text-center">
+      {/* 3. Centered Editorial Content */}
+      <Container className="relative z-10 w-full pt-20 sm:pt-24 md:pt-28 pb-10 sm:pb-14 flex flex-col items-center justify-center text-center my-auto">
         <div className="max-w-3xl flex flex-col items-center gap-4 sm:gap-6">
           {/* Eyebrow Badge */}
           <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs font-medium text-white shadow-xs">

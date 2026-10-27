@@ -537,7 +537,7 @@ const productData = [
     collectionSlug: "best-sellers",
     images: [
       {
-        url: "https://images.unsplash.com/photo-1611591475819-79b8b73ff2f3?auto=format&fit=crop&w=800&q=80",
+        url: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80",
         alt: "Zoma Artisan Brass Cuff — on wrist",
         sortOrder: 0,
       },

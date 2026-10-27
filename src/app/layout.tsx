@@ -64,6 +64,8 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+export const instant = false;
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -76,6 +78,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${playfair.variable} ${plusJakarta.variable}`}
     >
       <body className="min-h-screen flex flex-col bg-background text-main antialiased selection:bg-primary-light selection:text-main">

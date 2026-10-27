@@ -10,6 +10,7 @@
     "prisma": "node --env-file-if-exists=.env --env-file-if-exists=.env.local node_modules/prisma/build/index.js",
     "db:generate": "npm run prisma -- generate",
     "db:migrate": "npm run prisma -- migrate dev",
+    "db:deploy": "npm run prisma -- migrate deploy",
     "db:seed": "npm run prisma -- db seed",
     "db:verify": "tsx prisma/verify-db.ts",
     "test:api-response": "tsx scripts/test-api-response.ts",

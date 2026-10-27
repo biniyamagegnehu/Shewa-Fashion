@@ -54,11 +54,10 @@ export function Navbar({ settings }: { settings?: StoreSettingsRecord | null }) 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const isHome = pathname === "/";
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [isScrolledOnHome, setIsScrolledOnHome] = useState(false);
 
   useEffect(() => {
     if (!isHome) {
-      setIsScrolled(true);
       return;
     }
 
@@ -70,9 +69,9 @@ export function Navbar({ settings }: { settings?: StoreSettingsRecord | null }) 
       if (heroEl) {
         const heroBottom = heroEl.getBoundingClientRect().bottom;
         // Keep header transparent until hero finishes scrolling out of view
-        setIsScrolled(heroBottom <= 70);
+        setIsScrolledOnHome(heroBottom <= 70);
       } else {
-        setIsScrolled(window.scrollY > window.innerHeight * 0.75);
+        setIsScrolledOnHome(window.scrollY > window.innerHeight * 0.75);
       }
     };
 
@@ -81,6 +80,7 @@ export function Navbar({ settings }: { settings?: StoreSettingsRecord | null }) 
     return () => window.removeEventListener("scroll", handleScroll);
   }, [isHome]);
 
+  const isScrolled = !isHome || isScrolledOnHome;
   const isHeroTransparent = isHome && !isScrolled;
 
   return (

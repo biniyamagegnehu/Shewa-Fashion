@@ -109,7 +109,9 @@ export function ProductForm({
 
   const [slots, setSlots] = useState<ImageSlot[]>(buildInitialSlots)
   const slotsRef = useRef<ImageSlot[]>(slots)
-  slotsRef.current = slots
+  useEffect(() => {
+    slotsRef.current = slots
+  }, [slots])
 
   // Wrapped form action that appends all image files, keepImageIds, and imageOrder to FormData
   const wrappedAction = async (
@@ -161,7 +163,9 @@ export function ProductForm({
   // Cleanup all created object URLs on unmount
   useEffect(() => {
     return () => {
-      for (const url of objectUrlsRef.current) {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      const urls = objectUrlsRef.current
+      for (const url of urls) {
         URL.revokeObjectURL(url)
       }
     }

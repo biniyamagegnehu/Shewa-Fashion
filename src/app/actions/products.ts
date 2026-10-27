@@ -404,7 +404,7 @@ export async function updateProductAction(
   // The admin can pass imageOrder to specify the full order as a comma-separated list of
   // "existing:<id>" or "new:<index>" tokens
   const orderRaw = formData.get('imageOrder')
-  let finalImages: { url: string; alt: string; sortOrder: number; existingId?: string }[] = []
+  const finalImages: { url: string; alt: string; sortOrder: number; existingId?: string }[] = []
 
   if (typeof orderRaw === 'string' && orderRaw.trim()) {
     const tokens = orderRaw

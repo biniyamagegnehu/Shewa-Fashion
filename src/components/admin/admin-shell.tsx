@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useState } from 'react'
 import { AdminNav } from '@/components/admin/admin-nav'
@@ -22,14 +22,14 @@ export function AdminShell({
 
   return (
     <div className="min-h-screen bg-background text-main flex flex-col overflow-x-hidden">
-      {/* Sidebar Navigation (Desktop Fixed + Mobile Off-Canvas Drawer) */}
+      {/* Sidebar */}
       <AdminNav
         admin={admin}
         mobileOpen={mobileOpen}
         onCloseMobile={() => setMobileOpen(false)}
       />
 
-      {/* Main Column (Offset by 64 (16rem) on lg+ screens to clear fixed sidebar) */}
+      {/* Main column — offset by 64 (16rem = 256px) on lg+ */}
       <div className="lg:pl-64 flex flex-col flex-1 min-w-0">
         {/* Top Header */}
         <AdminHeader
@@ -39,17 +39,15 @@ export function AdminShell({
           onOpenMobile={() => setMobileOpen(true)}
         />
 
-        {/* Page Content Container */}
-        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
+        {/* Page Content */}
+        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           {children}
         </main>
 
         {/* Footer */}
-        <footer className="w-full border-t border-border py-4 px-4 sm:px-6 lg:px-8 bg-surface/50 text-center sm:text-left text-xs text-secondary flex flex-col sm:flex-row items-center justify-between gap-2">
+        <footer className="w-full border-t border-border/50 py-4 px-4 sm:px-6 lg:px-8 text-center sm:text-left text-[11px] text-secondary/50 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p>© {new Date().getFullYear()} Shewa Fashion. All rights reserved.</p>
-          <p className="text-[11px] text-secondary/70">
-            Secure Administrator Session • PostgreSQL Persistent Data
-          </p>
+          <p className="text-[10px]">Secure Admin Session · PostgreSQL</p>
         </footer>
       </div>
     </div>

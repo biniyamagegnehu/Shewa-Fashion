@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useState } from 'react'
 import Link from 'next/link'
@@ -45,7 +45,7 @@ export function GalleryListClient({ initialItems }: GalleryListClientProps) {
     <div className="space-y-6">
       {/* Controls Bar: Search & Filter Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        {/* Search input */}
+        {/* Search input (44px touch height) */}
         <div className="relative flex-1 max-w-sm">
           <svg
             className="w-4 h-4 text-secondary absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
@@ -60,18 +60,20 @@ export function GalleryListClient({ initialItems }: GalleryListClientProps) {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search lookbook..."
-            className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm rounded-xl border border-border bg-surface text-main placeholder:text-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+            placeholder="Search lookbook by title or caption..."
+            className="w-full h-11 pl-10 pr-4 text-xs sm:text-sm rounded-xl border border-border bg-surface text-main placeholder:text-secondary/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-xs"
           />
         </div>
 
         {/* Filter pills */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface border border-border self-start sm:self-auto">
+        <div className="flex items-center gap-1 p-1 rounded-xl bg-surface border border-border self-start sm:self-auto shadow-xs">
           <button
             type="button"
             onClick={() => setFilter('all')}
-            className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
-              filter === 'all' ? 'bg-primary text-white shadow-xs' : 'text-secondary hover:text-main'
+            className={`min-h-[38px] px-3.5 text-xs font-semibold rounded-lg transition-all ${
+              filter === 'all'
+                ? 'bg-primary text-white shadow-xs'
+                : 'text-secondary hover:text-main hover:bg-background'
             }`}
           >
             All ({items.length})
@@ -79,8 +81,10 @@ export function GalleryListClient({ initialItems }: GalleryListClientProps) {
           <button
             type="button"
             onClick={() => setFilter('published')}
-            className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
-              filter === 'published' ? 'bg-emerald-600 text-white shadow-xs' : 'text-secondary hover:text-main'
+            className={`min-h-[38px] px-3.5 text-xs font-semibold rounded-lg transition-all ${
+              filter === 'published'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-secondary hover:text-main hover:bg-background'
             }`}
           >
             Published ({items.filter((i) => i.isPublished).length})
@@ -88,8 +92,10 @@ export function GalleryListClient({ initialItems }: GalleryListClientProps) {
           <button
             type="button"
             onClick={() => setFilter('draft')}
-            className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
-              filter === 'draft' ? 'bg-amber-600 text-white shadow-xs' : 'text-secondary hover:text-main'
+            className={`min-h-[38px] px-3.5 text-xs font-semibold rounded-lg transition-all ${
+              filter === 'draft'
+                ? 'bg-amber-600 text-white shadow-xs'
+                : 'text-secondary hover:text-main hover:bg-background'
             }`}
           >
             Drafts ({items.filter((i) => !i.isPublished).length})
@@ -99,37 +105,40 @@ export function GalleryListClient({ initialItems }: GalleryListClientProps) {
 
       {/* Gallery Items Grid */}
       {filteredItems.length === 0 ? (
-        <div className="text-center py-16 px-4 rounded-2xl bg-surface border border-border space-y-3">
-          <div className="w-12 h-12 rounded-full bg-accent-gold/10 text-accent-gold flex items-center justify-center mx-auto">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <div className="text-center py-16 px-4 rounded-2xl bg-surface border border-border space-y-3.5 shadow-xs">
+          <div className="w-16 h-16 rounded-2xl bg-accent-gold/10 text-accent-gold flex items-center justify-center mx-auto">
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
             </svg>
           </div>
           <h2 className="font-serif text-lg font-bold text-main">
             {search ? 'No matching images found' : 'No lookbook images yet'}
           </h2>
-          <p className="text-xs sm:text-sm text-secondary max-w-sm mx-auto">
+          <p className="text-xs sm:text-sm text-secondary max-w-sm mx-auto leading-relaxed">
             {search
-              ? 'Try modifying your search or clearing the filter.'
-              : 'Add editorial campaign photography to showcase your collections to the public.'}
+              ? 'Try modifying your search query or switching filter tabs.'
+              : 'Add editorial campaign photography to showcase your collections in the public lookbook.'}
           </p>
           {!search && (
             <div className="pt-2">
               <Link
                 href="/admin/gallery/new"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-semibold transition-colors"
+                className="inline-flex items-center gap-2 h-11 px-5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors"
               >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
                 Add First Image
               </Link>
             </div>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
           {filteredItems.map((item) => (
             <div
               key={item.id}
-              className="group rounded-2xl bg-surface border border-border overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col"
+              className="group rounded-2xl bg-surface border border-border overflow-hidden shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col"
             >
               {/* Image preview with status badges */}
               <div className="relative aspect-4/3 w-full bg-background overflow-hidden border-b border-border">
@@ -147,50 +156,51 @@ export function GalleryListClient({ initialItems }: GalleryListClientProps) {
                   </div>
                 )}
 
-                {/* Status Badges */}
-                <div className="absolute top-2 left-2 flex flex-wrap gap-1.5">
+                {/* Status Badges Overlay */}
+                <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5">
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase shadow-xs ${
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase shadow-xs backdrop-blur-md ${
                       item.isPublished
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-amber-500 text-white'
+                        ? 'bg-emerald-600/90 text-white'
+                        : 'bg-amber-600/90 text-white'
                     }`}
                   >
                     {item.isPublished ? 'Published' : 'Draft'}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/60 text-white backdrop-blur-xs">
-                    Order #{item.sortOrder}
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/65 text-white backdrop-blur-md">
+                    #{item.sortOrder}
                   </span>
                 </div>
               </div>
 
-              {/* Details */}
+              {/* Details & Actions */}
               <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                 <div>
                   <h3 className="font-serif text-sm font-bold text-main line-clamp-1" title={item.title}>
                     {item.title}
                   </h3>
                   {item.description ? (
-                    <p className="text-xs text-secondary mt-1 line-clamp-2" title={item.description}>
+                    <p className="text-xs text-secondary mt-1 line-clamp-2 leading-relaxed" title={item.description}>
                       {item.description}
                     </p>
                   ) : (
-                    <p className="text-xs text-secondary/60 italic mt-1">No description</p>
+                    <p className="text-xs text-secondary/50 italic mt-1">No description</p>
                   )}
                 </div>
 
-                {/* Card actions */}
-                <div className="flex items-center justify-between pt-2 border-t border-border/80">
-                  <span className="text-[10px] text-secondary">{item.createdAt}</span>
+                {/* Card actions: Touch-friendly */}
+                <div className="flex items-center justify-between pt-3 border-t border-border/80">
+                  <span className="text-[11px] text-secondary font-mono">{item.createdAt}</span>
                   <div className="flex items-center gap-1.5">
                     <Link
                       href={`/admin/gallery/${item.id}/edit`}
-                      className="p-1.5 rounded-lg text-secondary hover:text-primary hover:bg-primary/5 transition-colors"
+                      className="h-10 px-3 rounded-xl bg-primary-light text-primary hover:bg-primary hover:text-white text-xs font-semibold inline-flex items-center gap-1 transition-all"
                       title="Edit item"
                     >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                       </svg>
+                      <span>Edit</span>
                     </Link>
                     <button
                       type="button"
@@ -201,7 +211,7 @@ export function GalleryListClient({ initialItems }: GalleryListClientProps) {
                           imageUrl: item.imageUrl,
                         })
                       }
-                      className="p-1.5 rounded-lg text-secondary hover:text-red-600 hover:bg-red-50 transition-colors"
+                      className="h-10 w-10 rounded-xl border border-error/30 text-error hover:bg-error/10 inline-flex items-center justify-center transition-colors"
                       title="Delete item"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">

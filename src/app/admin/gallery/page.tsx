@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/auth'
@@ -62,7 +62,7 @@ export default async function AdminGalleryPage() {
           <Link
             href="/admin/gallery/new"
             id="add-gallery-item-btn"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm font-semibold shadow-xs transition-colors self-start sm:self-auto"
+            className="h-11 inline-flex items-center gap-2 px-5 rounded-xl bg-primary hover:bg-primary-hover active:scale-95 text-white text-sm font-semibold shadow-xs transition-all self-start sm:self-auto"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -72,19 +72,21 @@ export default async function AdminGalleryPage() {
         </div>
 
         {/* Status Strip */}
-        <div className="flex flex-wrap gap-3 text-xs">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface border border-border">
-            <span className="font-semibold text-main">{items.length}</span>
+        <div className="flex flex-wrap gap-2.5 text-xs">
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface border border-border shadow-xs">
+            <span className="font-bold text-main">{items.length}</span>
             <span className="text-secondary">total</span>
           </div>
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200">
-            <span className="font-semibold text-emerald-700">{publishedCount}</span>
-            <span className="text-emerald-600">published</span>
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200 shadow-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span className="font-bold text-emerald-700">{publishedCount}</span>
+            <span className="text-emerald-700">published</span>
           </div>
           {draftCount > 0 && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200">
-              <span className="font-semibold text-amber-700">{draftCount}</span>
-              <span className="text-amber-600">drafts</span>
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200 shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              <span className="font-bold text-amber-700">{draftCount}</span>
+              <span className="text-amber-700">drafts</span>
             </div>
           )}
         </div>

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/auth'
@@ -23,10 +23,7 @@ interface ProductsPageProps {
 }
 
 export default async function AdminProductsPage({ searchParams }: ProductsPageProps) {
-  // 1. Strict server-side admin authentication and authorization
   const admin = await requireAdminSession('/admin/products')
-
-  // 2. Await searchParams per Next.js 16 conventions
   const params = await searchParams
 
   const q = typeof params.q === 'string' ? params.q.trim() : ''
@@ -39,7 +36,6 @@ export default async function AdminProductsPage({ searchParams }: ProductsPagePr
   const currentPage = isNaN(rawPage) || rawPage < 1 ? 1 : rawPage
   const pageSize = 10
 
-  // 3. Build Prisma where conditions safely
   const conditions: Prisma.ProductWhereInput[] = []
 
   if (q) {
@@ -90,7 +86,6 @@ export default async function AdminProductsPage({ searchParams }: ProductsPagePr
     status !== 'all' ||
     featured !== 'all'
 
-  // 4. Fetch products, counts, and filter options in parallel
   const [totalCount, rawProducts, categories, collections] = await Promise.all([
     prisma.product.count({ where }),
     prisma.product.findMany({
@@ -140,7 +135,6 @@ export default async function AdminProductsPage({ searchParams }: ProductsPagePr
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize))
 
-  // Serialize product list for client presentation
   const products: ProductListItem[] = rawProducts.map((p) => ({
     id: p.id,
     name: p.name,
@@ -169,14 +163,14 @@ export default async function AdminProductsPage({ searchParams }: ProductsPagePr
               Products Catalogue
             </h1>
             <p className="text-xs sm:text-sm text-secondary mt-1">
-              Manage your clothing, footwear, and accessory listings, pricing, and availability.
+              Manage your clothing, footwear, and accessory listings, pricing, and visibility.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             <Link
               href="/admin/products/new"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-sm font-semibold shadow-xs transition-colors"
+              className="h-11 inline-flex items-center gap-2 px-5 rounded-xl bg-primary hover:bg-primary-hover active:scale-95 text-white text-sm font-semibold shadow-xs transition-all"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

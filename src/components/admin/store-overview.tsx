@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import Link from 'next/link'
 import type { StoreSettings } from '@prisma/client'
 
@@ -17,6 +17,7 @@ export function StoreOverview({ settings }: StoreOverviewProps) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
         </svg>
       ),
+      iconBg: 'bg-primary/10 text-primary',
       primary: true,
     },
     {
@@ -28,20 +29,22 @@ export function StoreOverview({ settings }: StoreOverviewProps) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
         </svg>
       ),
+      iconBg: 'bg-violet-50 text-violet-600',
     },
     {
       label: 'Add Gallery Photo',
-      description: 'Upload lookbook & campaign images',
+      description: 'Upload lookbook & campaign photography',
       href: '/admin/gallery/new',
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
         </svg>
       ),
+      iconBg: 'bg-amber-50 text-amber-600',
     },
     {
       label: 'Edit Store Settings',
-      description: 'Update name, contact info & hours',
+      description: 'Update branding, contacts & operating hours',
       href: '/admin/settings',
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
@@ -49,61 +52,65 @@ export function StoreOverview({ settings }: StoreOverviewProps) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
         </svg>
       ),
+      iconBg: 'bg-emerald-50 text-emerald-600',
     },
   ]
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
       {/* Store Info Card */}
-      <div className="lg:col-span-2 bg-surface rounded-2xl border border-border p-5 sm:p-6 shadow-xs">
-        <div className="flex items-center gap-3 pb-4 border-b border-border">
-          <div className="w-9 h-9 rounded-xl bg-accent-gold/10 border border-accent-gold/20 flex items-center justify-center text-accent-gold shrink-0">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72m-13.5 8.65h.008v.008H4.5v-.008Zm0 3h.008v.008H4.5v-.008Zm0 3h.008v.008H4.5v-.008Z" />
-            </svg>
+      <div className="lg:col-span-2 bg-surface rounded-2xl border border-border p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-3.5 pb-4 border-b border-border">
+            <div className="w-10 h-10 rounded-xl bg-accent-gold/10 border border-accent-gold/20 flex items-center justify-center text-accent-gold shrink-0">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72l1.189-1.19A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72m-13.5 8.65h.008v.008H4.5v-.008Zm0 3h.008v.008H4.5v-.008Zm0 3h.008v.008H4.5v-.008Z" />
+              </svg>
+            </div>
+            <div>
+              <h2 id="store-overview-heading" className="font-serif text-base font-bold text-main">
+                {settings?.storeName || 'Shewa Fashion'}
+              </h2>
+              <p className="text-[11px] text-secondary">Store Profile & Status</p>
+            </div>
+            <span className="ml-auto inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Live Store
+            </span>
           </div>
-          <div>
-            <h2 id="store-overview-heading" className="font-serif text-base font-bold text-main">
-              {settings?.storeName || 'Shewa Fashion'}
-            </h2>
-            <p className="text-[11px] text-secondary">Store information</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 my-4 text-xs">
+            <div className="p-4 rounded-xl bg-background/80 border border-border/80">
+              <span className="text-[11px] text-secondary block font-medium mb-1">Contact Email</span>
+              <p className="font-semibold text-main truncate">
+                {settings?.email || <span className="text-secondary/60 italic font-normal">Not configured</span>}
+              </p>
+              {settings?.phone && (
+                <p className="text-secondary text-xs mt-1">{settings.phone}</p>
+              )}
+            </div>
+
+            <div className="p-4 rounded-xl bg-background/80 border border-border/80">
+              <span className="text-[11px] text-secondary block font-medium mb-1">Physical Location</span>
+              <p className="font-semibold text-main truncate">
+                {settings?.address || <span className="text-secondary/60 italic font-normal">Not configured</span>}
+              </p>
+              {settings?.openingHours && (
+                <p className="text-secondary text-xs mt-1">{settings.openingHours}</p>
+              )}
+            </div>
           </div>
-          <span className="ml-auto text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-            Live
-          </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4 text-xs">
-          <div className="p-3.5 rounded-xl bg-background border border-border/80">
-            <span className="text-[11px] text-secondary block mb-0.5">Contact Email</span>
-            <p className="font-medium text-main truncate">
-              {settings?.email || <span className="text-secondary/60 italic">Not configured</span>}
-            </p>
-            {settings?.phone && (
-              <p className="text-secondary text-[11px] mt-0.5">{settings.phone}</p>
-            )}
-          </div>
-
-          <div className="p-3.5 rounded-xl bg-background border border-border/80">
-            <span className="text-[11px] text-secondary block mb-0.5">Location</span>
-            <p className="font-medium text-main truncate">
-              {settings?.address || <span className="text-secondary/60 italic">Not configured</span>}
-            </p>
-            {settings?.openingHours && (
-              <p className="text-secondary text-[11px] mt-0.5">{settings.openingHours}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="pt-3 border-t border-border flex flex-wrap items-center justify-between gap-2 text-[11px] text-secondary">
-          <div className="flex items-center gap-1.5">
+        <div className="pt-3.5 border-t border-border flex flex-wrap items-center justify-between gap-2 text-[11px] text-secondary">
+          <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
-            <span className="font-medium text-main">Database Connected</span>
+            <span className="font-medium text-main">PostgreSQL Connected</span>
             <span className="text-secondary/40" aria-hidden="true">•</span>
-            <span>Sessions Active</span>
+            <span>Auth Active</span>
           </div>
           <span className="text-secondary/70">
-            Settings updated:{' '}
+            Updated:{' '}
             {settings?.updatedAt
               ? new Date(settings.updatedAt).toLocaleDateString()
               : 'Never'}
@@ -117,23 +124,25 @@ export function StoreOverview({ settings }: StoreOverviewProps) {
           <h2 className="text-xs font-bold uppercase tracking-wider text-secondary">
             Quick Actions
           </h2>
-          <p className="text-xs text-secondary mt-0.5">Common tasks to manage your shop</p>
+          <p className="text-xs text-secondary mt-0.5">Frequent tasks for catalog management</p>
         </div>
 
-        <div className="space-y-2 flex-1">
+        <div className="space-y-2.5 flex-1">
           {quickLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`min-h-[52px] flex items-center gap-3 p-3 rounded-xl border transition-all group ${
+              className={`min-h-[54px] flex items-center gap-3.5 p-3 rounded-xl border transition-all active:scale-[0.98] group ${
                 link.primary
                   ? 'bg-primary text-white border-primary hover:bg-primary-hover shadow-xs'
-                  : 'border-border hover:border-primary/40 hover:bg-primary-light/40 text-main'
+                  : 'border-border hover:border-primary/40 hover:bg-primary-light/30 text-main'
               }`}
             >
               <span
-                className={`shrink-0 ${
-                  link.primary ? 'text-white/90' : 'text-secondary group-hover:text-primary transition-colors'
+                className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                  link.primary
+                    ? 'bg-white/20 text-white'
+                    : link.iconBg
                 }`}
               >
                 {link.icon}
@@ -147,16 +156,16 @@ export function StoreOverview({ settings }: StoreOverviewProps) {
                   {link.label}
                 </p>
                 <p
-                  className={`text-[10px] leading-tight ${
-                    link.primary ? 'text-white/70' : 'text-secondary'
+                  className={`text-[11px] leading-tight mt-0.5 ${
+                    link.primary ? 'text-white/80' : 'text-secondary'
                   }`}
                 >
                   {link.description}
                 </p>
               </div>
               <svg
-                className={`w-3.5 h-3.5 ml-auto shrink-0 ${
-                  link.primary ? 'text-white/70' : 'text-secondary/50 group-hover:text-primary transition-colors'
+                className={`w-4 h-4 ml-auto shrink-0 ${
+                  link.primary ? 'text-white/80' : 'text-secondary/50 group-hover:text-primary transition-colors'
                 }`}
                 fill="none"
                 viewBox="0 0 24 24"
